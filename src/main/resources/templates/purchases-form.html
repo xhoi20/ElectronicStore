@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Purchase</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5">
+    <h1>Add Purchase</h1>
+
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <form th:action="@{/purchases/save}" th:object="${purchase}" method="post">
+        <div class="mb-3">
+            <label for="dataBlerjes" class="form-label">Date</label>
+            <input type="datetime-local" class="form-control" id="dataBlerjes" th:field="*{dataBlerjes}" required />
+        </div>
+
+        <div class="mb-3">
+            <label for="furnitori" class="form-label">Supplier ID</label>
+            <input type="number" class="form-control" id="furnitori" th:field="*{furnitori.id}" required />
+        </div>
+
+        <div class="mb-3">
+            <label for="totaliKostos" class="form-label">Total Cost</label>
+            <input type="number" step="0.01" class="form-control" id="totaliKostos" th:field="*{totaliKostos}" required />
+        </div>
+
+        <div class="mb-3">
+            <label for="sasia" class="form-label">Quantity</label>
+            <input type="number" class="form-control" id="sasia" th:field="*{sasia}" required />
+        </div>
+
+        <input type="hidden" name="userId" value="1" />
+
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a th:href="@{/purchases}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoices by Cashier</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-5">
+    <h1>Invoices by Cashier</h1>
+
+    <p><strong>Cashier:</strong> <span th:text="${cashier != null ? cashier.name : 'Unknown'}"></span></p>
+
+    <table class="table table-bordered">
+        <thead>
+        <tr>
+            <th>Invoice ID</th>
+            <th>Total</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="invoice : ${invoices}">
+            <td th:text="${invoice.id}"></td>
+            <td th:text="${invoice.totali}"></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <a th:href="@{/invoices}" class="btn btn-secondary">Back</a>
+</div>
+</body>
+</html>

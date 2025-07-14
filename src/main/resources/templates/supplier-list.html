@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Lista e Perdoruesve</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+</head>
+<body>
+<div class="container">
+    <h1>Lista e Furnitoreve</h1>
+    <a href="/suppliers/add" class="btn btn-primary mb-3">Shto Furnitor</a>
+    <div th:if="${session.loggedInSupplier}">
+        <p>Welcome, <span th:text="${session.loggedInSupplier.name}"></span>!</p>
+        <a th:href="@{/suppliers/logout}">Logout</a>
+    </div>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Emri</th>
+            <th>Email</th>
+            <th>Adresa</th>
+
+            <th>Veprime</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="supplier : ${suppliers}">
+            <td th:text="${supplier.id}"></td>
+            <td th:text="${supplier.name}"></td>
+            <td th:text="${supplier.email}"></td>
+            <td th:text="${supplier.adresa}"></td>
+
+
+            <td>
+                <a th:href="@{/suppliers/edit/{id}(id=${supplier.id})}" class="btn btn-warning btn-sm">Ndrysho</a>
+                <a th:href="@{/suppliers/delete/{id}(id=${supplier.id})}" class="btn btn-danger btn-sm" onclick="return confirm('Je i sigurt?')">Fshij</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

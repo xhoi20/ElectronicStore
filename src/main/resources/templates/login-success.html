@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Login Successful</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .success-message {
+            background-color: #dff0d8;
+            color: #3c763d;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .info-box {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        .info-box p {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="success-message">
+    <h2>Login Successful!</h2>
+</div>
+
+<div class="info-box">
+    <p><strong>Email:</strong> <span th:text="${email}"></span></p>
+    <p><strong>Role:</strong> <span th:text="${role}"></span></p>
+    <p><strong>Token:</strong> <span th:text="${token}"></span></p>
+</div>
+
+<a th:href="@{/login}">Back to Login</a>
+</body>
+</html>

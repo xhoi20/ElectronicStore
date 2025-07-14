@@ -1,0 +1,29 @@
+package com.electronicstore.service.serviceInterface;
+
+import com.electronicstore.entity.Invoice;
+import com.electronicstore.entity.PurchaseItem;
+import com.electronicstore.service.InvoiceService;
+
+
+import java.util.List;
+import java.util.Optional;
+
+
+public interface IInvoiceService {
+
+
+    Invoice createInvoice(Long userId, List<PurchaseItem> purchaseItems) throws Exception;
+
+
+    List<Invoice> getInvoicesByCashier(Long userId);
+
+
+    double getDailyTotalByCashier(Long userId);
+
+
+   List<Invoice> getInvoicesBySector(Long userId)throws Exception;
+Optional<Invoice> getInvoiceById(Long invoiceId);
+Iterable<Invoice>getAllInvoices();
+    InvoiceService.SalesMetrics getSalesMetrics(Long userId)throws Exception;
+public void deleteInvoice(Long userId,Long invoiceId)throws Exception;
+}
