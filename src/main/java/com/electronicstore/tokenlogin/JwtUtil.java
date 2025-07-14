@@ -23,7 +23,7 @@ public class JwtUtil {
     @Value("${jasypt.encryptor.jwt.expiration}")
     private Long expiration;
 
-    // Initialize secretKey using Keys.secretKeyFor
+
     public JwtUtil() {
         this.secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS512); // Gjeneron një çelës 512-bit
     }
@@ -40,7 +40,7 @@ public class JwtUtil {
                 .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(secretKey) // Përdor secretKey në vend të stringut
+                .signWith(secretKey)
                 .compact();
     }
 
@@ -60,7 +60,7 @@ public class JwtUtil {
 
     private Claims extractAllClaims(String token) {
         return Jwts.parser()
-                .setSigningKey(secretKey) // Përdor secretKey
+                .setSigningKey(secretKey)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
