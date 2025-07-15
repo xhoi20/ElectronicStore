@@ -2,6 +2,7 @@ package com.electronicstore.service;
 
 import com.electronicstore.dto.AuthRequest;
 import com.electronicstore.dto.AuthResponse;
+import com.electronicstore.entity.Purchase;
 import com.electronicstore.entity.Sector;
 import com.electronicstore.entity.User;
 import com.electronicstore.entity.UserRole;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -26,7 +28,7 @@ import java.util.stream.StreamSupport;
 import static com.electronicstore.entity.UserRole.MANAGER;
 
 @Service
-public class UserService implements IUserService {
+public class UserService extends BaseService implements IUserService {
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -50,7 +52,6 @@ public User registerUser(String emri, String email, String rawPassword,UserRole 
     User user = new User();
     user.setName(emri);
     user.setEmail(email);
-    //user.setPassword(encryptedPassword);
     user.setRole(role);
 
     if (rawPassword != null && !rawPassword.trim().isEmpty()) {
@@ -63,65 +64,54 @@ public User registerUser(String emri, String email, String rawPassword,UserRole 
         throw new IllegalArgumentException("Password cannot be set empty for new users");
     }
     user = userRepository.save(user);
-
-    if (role == UserRole.CASHIER && sectorId != null) {
-        Sector sector = sectorRepository.findById(sectorId)
-                .orElseThrow(() -> new IllegalArgumentException("Sector not found: " + sectorId));
-        user.setSector(sector);
-
-    }
-
-    if (role == MANAGER && managedSectorIds != null && !managedSectorIds.isEmpty()) {
-        Iterable<Sector> sectorIterable = sectorRepository.findAllById(managedSectorIds);
-
-        Set<Sector> sectors = StreamSupport.stream(sectorIterable.spliterator(), false)
-                .collect(Collectors.toSet());
-        if (sectors.size() != managedSectorIds.size()) {
-            throw new IllegalArgumentException("One or more sectors not found");
+    User authenticatedUser = getAuthenticatedUser();
+    if (authenticatedUser.getRole().equals(MANAGER)) {
+        if (role == UserRole.CASHIER && sectorId != null) {
+            Sector sector = sectorRepository.findById(sectorId)
+                    .orElseThrow(() -> new IllegalArgumentException("Sector not found: " + sectorId));
+            user.setSector(sector);
+            userRepository.save(user);
         }
 
-        for (Sector sector : sectors) {
+        if (role == MANAGER && managedSectorIds != null && !managedSectorIds.isEmpty()) {
+            Iterable<Sector> sectorIterable = sectorRepository.findAllById(managedSectorIds);
 
-            if (!user.getSectors().contains(sector)) {
-                user.getSectors().add(sector);
+            Set<Sector> sectors = StreamSupport.stream(sectorIterable.spliterator(), false)
+                    .collect(Collectors.toSet());
+            if (sectors.size() != managedSectorIds.size()) {
+                throw new IllegalArgumentException("One or more sectors not found");
             }
 
+            for (Sector sector : sectors) {
 
+                if (!user.getSectors().contains(sector)) {
+                    user.getSectors().add(sector);
+                }
+
+
+            }
+            user = userRepository.save(user);
         }
-      user=userRepository.save(user);
     }
-
     return user;
 }
 
-//    @Transactional
-//    public User loginUser(String email, String inputPassword) {
-//        User user = userRepository.findByEmail(email);
-//
-//
-//        StandardPBEStringEncryptor encryptor = new StandardPBEStringEncryptor();
-//        encryptor.setPassword(encryptionKey);
-//        encryptor.setAlgorithm(ENCRYPTION_ALGORITHM);
-//
-//        String decryptedPassword = encryptor.decrypt(user.getPassword());
-//
-//        if (!decryptedPassword.equals(inputPassword)) {
-//            throw new RuntimeException("Invalid credentials");
-//        }
-//        if (user.getRole() != UserRole.MANAGER && user.getRole() != UserRole.ADMIN) {
-//            throw new IllegalArgumentException("User must be a manager or admin to log in");
-//        }
-//        return user;
-//    }
+
 @Transactional
 public AuthResponse loginUser(AuthRequest authRequest) {
     User user = userRepository.findByEmail(authRequest.getEmail());
     if (user == null) {
         throw new RuntimeException("User not found");
     }
+    StandardPBEStringEncryptor encryptor = new StandardPBEStringEncryptor();
+    encryptor.setPassword(encryptionKey);
+    encryptor.setAlgorithm(ENCRYPTION_ALGORITHM);
+    String decryptedPassword = encryptor.decrypt(user.getPassword());
+    if (!decryptedPassword.equals(authRequest.getPassword())) {
+        throw new RuntimeException("Invalid credentials");
+    }
 
-
-    if (user.getRole() != UserRole.MANAGER && user.getRole() != UserRole.ADMIN) {
+    if (user.getRole() != UserRole.MANAGER && user.getRole() != UserRole.ADMIN&& user.getRole() != UserRole.CASHIER) {
         throw new IllegalArgumentException("User must be a manager or admin to log in");
     }
 
@@ -143,10 +133,19 @@ public AuthResponse loginUser(AuthRequest authRequest) {
 
 @Transactional
 public void deleteUserById(Long id) {
+    User authenticatedUser = getAuthenticatedUser();
     if (!userRepository.existsById(id)) {
         throw new RuntimeException("User with ID " + id + " not found.");
     }
-
+    User user = userRepository.findById(id).get();
+    List<Purchase> linkedPurchases = purchaseRepository.findByMenaxheriId(id);
+    if (!linkedPurchases.isEmpty()) {
+        purchaseRepository.deleteAll(linkedPurchases); // Fshi të gjitha blerjet e lidhura
+    }
+    for (Sector linkedSector : new HashSet<>(user.getSectors())) {
+        linkedSector.getUsers().remove(user);
+        sectorRepository.save(linkedSector);
+    }
 
     userRepository.deleteById(id);
 }
@@ -154,7 +153,7 @@ public void deleteUserById(Long id) {
     @Transactional
     public User updateUser(Long id, String name, String email,
                            UserRole role, Long sectorId, Set<Long> managedSectorIds) {
-
+        User authenticatedUser = getAuthenticatedUser();
         Optional<User> userOptional = userRepository.findById(id);
         if (userOptional.isPresent()) {
             User user = userOptional.get();

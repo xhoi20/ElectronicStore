@@ -9,12 +9,18 @@ import com.electronicstore.repository.UserRepository;
 import com.electronicstore.service.serviceInterface.ISectorService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.Optional;
 
+import static com.electronicstore.entity.UserRole.MANAGER;
+
 @Service
-public class SectorService implements ISectorService {
+public class SectorService extends BaseService implements ISectorService {
     @Autowired
     private SectorRepository sectorRepository;
     @Autowired
@@ -22,54 +28,50 @@ public class SectorService implements ISectorService {
 
 
 
-    private User validateUser(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " not found."));
-//        System.out.println("User ID: " + user.getId() + ", Role: " + user.getRole() +
-//                ", Sector: " + (user.getSector() != null ? user.getSector().getId() : "null"));
-        if (user.getRole() != UserRole.MANAGER && user.getRole() != UserRole.ADMIN) {
-            throw new IllegalArgumentException("User must be a manager or admin.");
-        }
-        return user;
-    }
 
     @Transactional
-    public Sector addSector(String sectorName, Long userId) {
+    public Sector addSector(String sectorName) {
         if (sectorName == null || sectorName.trim().isEmpty()) {
             throw new IllegalArgumentException("Sector name cannot be empty");
         }
-        User user = validateUser(userId);
+        User user = getAuthenticatedUser();
+
+
         Sector sector = new Sector();
         sector.setSectorName(sectorName);
-
         sector = sectorRepository.save(sector);
-        if (user.getRole().equals("MANAGER")) {
+
+        if (user.getRole().equals(MANAGER)) {
             sector.getUsers().add(user);
-        user.getSectors().add(sector);
+            user.getSectors().add(sector);
             userRepository.save(user);
         }
-        return sectorRepository.save(sector);
+
+        return sector;
     }
-@Transactional
-public void deleteSector(Long sectorId) {
-   // Sector sector = validateSectorAndUserAccess(sectorId, userId);
-    //sector.getUsers().forEach(m -> m.getSectors().remove(sector));
+    @Transactional
+    public void deleteSector(Long sectorId) {
 
-    sectorRepository.deleteById(sectorId);
-}
+        User user = getAuthenticatedUser();
+        Optional<Sector> sectorOptional = sectorRepository.findById(sectorId);
+        if (sectorOptional.isEmpty()) {
+            throw new IllegalArgumentException("Sector not found with id: " + sectorId);
+        }
 
-//
-//    @Transactional
-//    public Sector updateSector(Long sectorId, String newSectorName, Long userId) {
-//        if (newSectorName == null || newSectorName.trim().isEmpty()) {
-//            throw new IllegalArgumentException("Sector name cannot be empty");
-//        }
-//        Sector sector = validateSectorAndUserAccess(sectorId, userId);
-//        sector.setSectorName(newSectorName);
-//        return sectorRepository.save(sector);
-//    }
+        Sector sector = sectorOptional.get();
+
+        for (User linkedUser : new HashSet<>(sector.getUsers())) {
+            linkedUser.getSectors().remove(sector);
+            userRepository.save(linkedUser);
+        }
+
+        sectorRepository.deleteById(sectorId);
+    }
+
+
 @Transactional
 public Sector updateSector(Long sectorId, String newSectorName) {
+    User user = getAuthenticatedUser();
     Optional<Sector> sectorOptional = sectorRepository.findById(sectorId);
     Sector sector = sectorOptional.get();
     sector.setSectorName(newSectorName);

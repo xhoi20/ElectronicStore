@@ -13,11 +13,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Optional;
+
+import static com.electronicstore.entity.UserRole.MANAGER;
 
 
 @Service
-public class PurchaseService implements IPurchaseService {
+public class PurchaseService extends BaseService implements IPurchaseService {
     @Autowired
     private PurchaseRepository purchaseRepository;
 
@@ -26,55 +29,81 @@ public class PurchaseService implements IPurchaseService {
     @Autowired
     private SupplierRepository supplierRepository;
 
-private User validateUser(Long userId) {
-    User user = userRepository.findById(userId)
-            .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " not found."));
-    System.out.println("User ID: " + user.getId() + ", Role: " + user.getRole() );
-           // ", Sector: " + (user.getSector() != null ? user.getSector().getId() : "null"));
-    if (user.getRole() != UserRole.MANAGER && user.getRole() != UserRole.ADMIN) {
-        throw new IllegalArgumentException("User must be a manager or admin.");
+
+
+
+@Transactional
+public Purchase addPurchase(Long userId, LocalDateTime dataBlerjes,Long furnitorId,double totaliKostos,int sasia) {
+    User authenticatedUser=getAuthenticatedUser();
+    if (dataBlerjes == null) {
+        throw new IllegalArgumentException("Data e blerjes nuk mund të jete bosh.");
     }
-    return user;
+    if (furnitorId == null) {
+        throw new IllegalArgumentException("ID e furnitorit nuk mund të jete bosh.");
+    }
+    if (totaliKostos < 0) {
+        throw new IllegalArgumentException("Kosto totale nuk mund të jete negative.");
+    }
+    if (sasia <= 0) {
+        throw new IllegalArgumentException("Sasia duhet te jete me e madhe se zero.");
+    }
+    Supplier furnitor = supplierRepository.findById(furnitorId)
+            .orElseThrow(() -> new IllegalArgumentException("Furnitori me ID " + furnitorId + " nuk gjendet."));
+    Purchase purchase=Purchase.builder()
+            .dataBlerjes(dataBlerjes)
+            .furnitori(furnitor)
+            .menaxheri(authenticatedUser)
+            .totaliKostos(totaliKostos)
+            .sasia(sasia)
+            .artikujt(new ArrayList<>())
+            .build();
+    return purchaseRepository.save(purchase);
 }
-    @Transactional
-    public Purchase addPurchase(Long userId, LocalDateTime dataBlerjes, Long furnitorId, double totaliKostos, int sasia) {
-        User user = validateUser(userId);
-        Supplier furnitor = supplierRepository.findById(furnitorId)
-                .orElseThrow(() -> new IllegalArgumentException("Supplier with ID " + furnitorId + " not found."));
-        Purchase purchase = Purchase.builder()
-                .dataBlerjes(dataBlerjes)
-                .furnitori(furnitor)
-                .menaxheri(user)
-                .totaliKostos(totaliKostos)
-                .sasia(sasia)
-                .artikujt(new java.util.ArrayList<>())
-                .build();
-
-        return purchaseRepository.save(purchase);
-    }
-
-
 
     @Transactional
     public void deletePurchase(Long id) {
-
+        User authenticatedUser = getAuthenticatedUser(); // Ensure only managers can delete purchases
+        Optional<Purchase> purchaseOptional = purchaseRepository.findById(id);
+        if (purchaseOptional.isEmpty()) {
+            throw new IllegalArgumentException("Blerja me ID "+id + " nuk gjendet.");
+        }
+        Purchase purchase = purchaseOptional.get();
+        purchase.getArtikujt().clear();
+        purchaseRepository.save(purchase);
+        purchaseRepository.deleteById(id);
 
         purchaseRepository.deleteById(id);
     }
 
 @Transactional
-public Purchase updatePurchase( Long purchaseId, LocalDateTime dataBlerjes, Long furnitorId, Double totaliKostos, Integer sasia) {
-    Purchase purchase = purchaseRepository.findById(purchaseId)
-            .orElseThrow(() -> new IllegalArgumentException("Purchase with ID " + purchaseId + " not found."));
-//    User user = (userId != null) ? validateUser(userId) : purchase.getMenaxheri();
-    Supplier furnitor = (furnitorId != null) ? supplierRepository.findById(furnitorId)
-            .orElseThrow(() -> new IllegalArgumentException("Supplier with ID " + furnitorId + " not found.")) : purchase.getFurnitori();
+public Purchase updatePurchase(Long purchaseId,  LocalDateTime dataBlerjes, Long furnitorId, Double totaliKostos, Integer sasia) {
+    User authenticatedUser=getAuthenticatedUser();
+    Optional<Purchase> purchaseOptional = purchaseRepository.findById(purchaseId);
+    if (purchaseOptional.isEmpty()) {
+        throw new IllegalArgumentException("Blerja me ID " + purchaseId + " nuk gjendet.");
+    }
 
-    if (dataBlerjes != null) purchase.setDataBlerjes(dataBlerjes);
-    if (furnitorId != null) purchase.setFurnitori(furnitor);
-    //if (userId != null) purchase.setMenaxheri(user);
-    if (totaliKostos != null) purchase.setTotaliKostos(totaliKostos);
-    if (sasia != null) purchase.setSasia(sasia);
+    Purchase purchase = purchaseOptional.get();
+    if (furnitorId != null) {
+        Supplier furnitor = supplierRepository.findById(furnitorId)
+                .orElseThrow(() -> new IllegalArgumentException("Furnitori me ID " + furnitorId + " nuk gjendet."));
+        purchase.setFurnitori(furnitor);
+    }
+    if (dataBlerjes != null) {
+        purchase.setDataBlerjes(dataBlerjes);
+    }
+    if (totaliKostos != null) {
+        if (totaliKostos < 0) {
+            throw new IllegalArgumentException("Kosto totale nuk mund të jetë negative.");
+        }
+        purchase.setTotaliKostos(totaliKostos);
+    }
+    if (sasia != null) {
+        if (sasia <= 0) {
+            throw new IllegalArgumentException("Sasia duhet të jetë më e madhe se zero.");
+        }
+        purchase.setSasia(sasia);
+    }
 
     return purchaseRepository.save(purchase);
 }

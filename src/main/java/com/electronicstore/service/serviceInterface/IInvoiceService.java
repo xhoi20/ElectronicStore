@@ -25,5 +25,5 @@ public interface IInvoiceService {
 Optional<Invoice> getInvoiceById(Long invoiceId);
 Iterable<Invoice>getAllInvoices();
     InvoiceService.SalesMetrics getSalesMetrics(Long userId)throws Exception;
-public void deleteInvoice(Long userId,Long invoiceId)throws Exception;
+public void deleteInvoice(Long invoiceId)throws Exception;
 }

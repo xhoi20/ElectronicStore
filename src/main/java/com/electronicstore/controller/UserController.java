@@ -12,12 +12,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
 @RestController
 @RequestMapping("api/users1")
-public class UserController {
+public class UserController extends BaseController{
     @Autowired
     private IUserService userService;
 
@@ -27,13 +28,26 @@ public class UserController {
     }
 
 @PostMapping("register")
-public ResponseEntity<User> registerUser(
+public ResponseEntity<Map<String, Object>> registerUser(
         @RequestBody UserRegistrationRequest request,
         @RequestParam(required = false) Long sectorId,
         @RequestParam(required = false) Set<Long> managedSectorIds) {
     try {
-        UserRole role = UserRole.valueOf(request.getRole().toUpperCase());
+        if (request.getName() == null || request.getName().trim().isEmpty()) {
+            return createErrorResponse("Name is missing or empty", HttpStatus.BAD_REQUEST);
+        }
+        if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+            return createErrorResponse("Email is missing or empty", HttpStatus.BAD_REQUEST);
+        }
+        if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
+            return createErrorResponse("Password is missing or empty", HttpStatus.BAD_REQUEST);
+        }
+        if (request.getRole() == null) {
+            return createErrorResponse("Role cannot be null", HttpStatus.BAD_REQUEST);
+        }
 
+        UserRole role = UserRole.valueOf(request.getRole().toUpperCase());
+        checkManagerRole(); // Vetëm manager mund të krijojë përdorues të rinj
         User createdUser = userService.registerUser(
                 request.getName(),
                 request.getEmail(),
@@ -42,22 +56,13 @@ public ResponseEntity<User> registerUser(
                 sectorId!= null ? sectorId : request.getSectorId(),
                 managedSectorIds
         );
-        return ResponseEntity.ok(createdUser);
-    } catch (IllegalArgumentException e) {
-        return ResponseEntity.badRequest().body(null);
+        return createSuccessResponse(createdUser, "User registered successfully", HttpStatus.CREATED);
+    } catch (Exception e) {
+        return handleException(e);
     }
 }
 
 
-//    @PostMapping("login")
-//    public ResponseEntity<User> loginUser(@RequestBody UserLoginRequest request) {
-//        try {
-//            User authenticatedUser = userService.loginUser(request.getEmail(), request.getPassword());
-//            return ResponseEntity.ok(authenticatedUser);
-//        } catch (RuntimeException e) {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
-//        }
-//    }
 
 
     @GetMapping("id")
@@ -70,42 +75,50 @@ public ResponseEntity<User> registerUser(
 
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUserById(
+    public ResponseEntity<Map<String, Object>> deleteUserById(
             @PathVariable Long id
          ) {
         try {
+            checkManagerRole();
             userService.deleteUserById(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return createSuccessResponse(null, "User deleted successfully", HttpStatus.NO_CONTENT);
+        } catch (Exception e) {
+            return handleException(e);
         }
     }
 
-@PutMapping("/{id}")
-public ResponseEntity<User> updateUser(
-        @PathVariable Long id,
-        @RequestBody UserUpdateRequest request,
-        @RequestParam(required = false) Long sectorId,
-        @RequestParam(required = false) Set<Long> managedSectorIds,
-        @RequestParam UserRole requestingUserRole) {
-    try {
-        UserRole role = UserRole.valueOf(request.getRole().toUpperCase());
 
-        User updatedUser = userService.updateUser(
-                id,
-                request.getName(),
-                request.getEmail(),
-                role,
-                sectorId,
-                managedSectorIds
-              //  requestingUserRole
-        );
-        return ResponseEntity.ok(updatedUser);
-    } catch (SecurityException e) {
-        return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
-    } catch (IllegalArgumentException e) {
-        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+   @PutMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> updateUser(
+            @PathVariable Long id,
+            @RequestBody UserUpdateRequest request,
+            @RequestParam(required = false) Long sectorId,
+            @RequestParam(required = false) Set<Long> managedSectorIds,
+            @RequestParam(required = false) UserRole requestingUserRole) {
+        try {
+            if (request.getName() == null || request.getName().trim().isEmpty()) {
+                return createErrorResponse("Name is missing or empty", HttpStatus.BAD_REQUEST);
+            }
+            if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+                return createErrorResponse("Email is missing or empty", HttpStatus.BAD_REQUEST);
+            }
+            if (request.getRole() == null) {
+                return createErrorResponse("Role cannot be null", HttpStatus.BAD_REQUEST);
+            }
+
+            UserRole role = UserRole.valueOf(request.getRole().toUpperCase());
+            checkManagerRole();
+            User updatedUser = userService.updateUser(
+                    id,
+                    request.getName(),
+                    request.getEmail(),
+                    role,
+                    sectorId,
+                    managedSectorIds
+            );
+            return createSuccessResponse(updatedUser, "User updated successfully", HttpStatus.OK);
+        } catch (Exception e) {
+            return handleException(e);
+        }
     }
-}
-
 }

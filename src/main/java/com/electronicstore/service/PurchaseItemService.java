@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
-public class PurchaseItemService implements IPurchaseItemService {
+public class PurchaseItemService extends BaseService implements IPurchaseItemService {
     @Autowired
     private PurchaseItemRepository purchaseItemRepository;
     @Autowired
@@ -26,19 +26,10 @@ public class PurchaseItemService implements IPurchaseItemService {
     private InvoiceRepository invoiceRepository;
 
 
-private User validateUser(Long userId) {
-    User user = userRepository.findById(userId)
-            .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " not found."));
-    System.out.println("User ID: " + user.getId() + ", Role: " + user.getRole() );
-          //  ", Sector: " + (user.getSector() != null ? user.getSector().getId() : "null"));
-    if (user.getRole() != UserRole.MANAGER && user.getRole() != UserRole.ADMIN) {
-        throw new IllegalArgumentException("User must be a manager or admin.");
-    }
-    return user;
-}
+
     @Transactional
     public PurchaseItem addPurchaseItem(Long userId, Long purchaseId, Long itemId, Integer quantity, Long invoiceId) {
-        validateUser(userId);
+ User authenticatedUser = getAuthenticatedUser();
 
         Purchase purchase = purchaseRepository.findById(purchaseId)
                 .orElseThrow(() -> new IllegalArgumentException("Purchase with ID " + purchaseId + " not found."));
@@ -68,13 +59,13 @@ private User validateUser(Long userId) {
 
     @Transactional
     public void deletePurchaseItem( Long id) {
-
+        User authenticatedUser = getAuthenticatedUser();
 
         purchaseItemRepository.deleteById(id);
     }
     @Transactional
     public PurchaseItem updatePurchaseItem(Long userId, Long purchaseItemId, Integer quantity, Long invoiceId) {
-        validateUser(userId);
+        User authenticatedUser = getAuthenticatedUser();
 
         PurchaseItem purchaseItem = purchaseItemRepository.findById(purchaseItemId)
                 .orElseThrow(() -> new IllegalArgumentException("Purchase item with ID " + purchaseItemId + " not found."));

@@ -33,7 +33,7 @@ public class SectorThymeleafController {
     @PostMapping
     public String createSector(@RequestParam String sectorName, @RequestParam Long userId, RedirectAttributes redirectAttributes) {
         try {
-            sectorService.addSector(sectorName, userId);
+            sectorService.addSector(sectorName);
             redirectAttributes.addFlashAttribute("message", "Sector created successfully!");
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());

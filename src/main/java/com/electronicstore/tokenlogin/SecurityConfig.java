@@ -2,8 +2,6 @@ package com.electronicstore.tokenlogin;
 
 
 
-import com.electronicstore.tokenlogin.JwtUtil;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,10 +40,10 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
-                     //   .requestMatchers("/api/auth/**","/users/**","/login/**").permitAll()
+                       .requestMatchers("/api/auth/**","/users/**","/login/**","/sectors/**").permitAll()
+                        .requestMatchers("/api/sectors/**").authenticated()
 
-
-                        .anyRequest().permitAll())//authenticated())
+                        .anyRequest().authenticated())//permitAll())authenticated())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(new JwtAuthenticationFilter(jwtUtil, userDetailsService), UsernamePasswordAuthenticationFilter.class);

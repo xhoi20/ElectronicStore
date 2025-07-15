@@ -12,16 +12,18 @@ import com.electronicstore.service.InvoiceService.SalesMetrics;
 import com.electronicstore.service.serviceInterface.IInvoiceService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 
 @RestController
 @RequestMapping("/api/invoices")
-public class InvoiceController {
+public class InvoiceController extends BaseController{
 
     @Autowired
     private IInvoiceService invoiceService;
@@ -68,48 +70,56 @@ public ResponseEntity<?> createInvoice(
             return message;
         }
     }
-
-    @GetMapping("/cashier/{cashierId}")
-    public ResponseEntity<List<Invoice>> getInvoicesByCashier(@PathVariable Long userId) {
-        List<Invoice> invoices = invoiceService.getInvoicesByCashier(userId);
-        return ResponseEntity.ok(invoices);
-    }
-
-    @GetMapping("/cashier/{cashierId}/daily-total")
-    public ResponseEntity<Double> getDailyTotalByCashier(@PathVariable Long userId) {
-        double total = invoiceService.getDailyTotalByCashier(userId);
-        return ResponseEntity.ok(total);
-    }
-
-    @GetMapping("/manager/{managerId}")
-    public ResponseEntity<List<Invoice>> getInvoicesByManager(@PathVariable Long userId) {
+    @GetMapping("/cashier/{userId}")
+    public ResponseEntity<Map<String, Object>> getInvoicesByCashier(@PathVariable Long userId) {
         try {
+            checkManagerRole();
+            List<Invoice> invoices = invoiceService.getInvoicesByCashier(userId);
+            return createSuccessResponse(invoices, "Faturat për arketar u gjeten me sukses", HttpStatus.OK);
+        } catch (Exception e) {
+            return handleException(e);
+        }
+    }
+
+    @GetMapping("/daily-total/{userId}")
+    public ResponseEntity<Map<String, Object>> getDailyTotalByCashier(@PathVariable Long userId) {
+        try {
+            checkManagerRole();
+            double total = invoiceService.getDailyTotalByCashier(userId);
+            return createSuccessResponse(total, "Totali ditor per arketar u llogarit me sukses", HttpStatus.OK);
+        } catch (Exception e) {
+            return handleException(e);
+        }
+    }
+    @GetMapping("/sector/{userId}")
+    public ResponseEntity<Map<String, Object>> getInvoicesBySector(@PathVariable Long userId) {
+        try {
+            checkManagerRole();
             List<Invoice> invoices = invoiceService.getInvoicesBySector(userId);
-            return ResponseEntity.ok(invoices);
+            return createSuccessResponse(invoices, "Faturat per sektor u gjetën me sukses", HttpStatus.OK);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(null);
+            return handleException(e);
         }
     }
 
-    @GetMapping("/manager/{managerId}/metrics")
-    public ResponseEntity<SalesMetrics> getSalesMetrics(@PathVariable Long userId) {
+    @GetMapping("/sales-metrics/{userId}")
+    public ResponseEntity<Map<String, Object>> getSalesMetrics(@PathVariable Long userId) {
         try {
+            checkManagerRole();
             SalesMetrics metrics = invoiceService.getSalesMetrics(userId);
-            return ResponseEntity.ok(metrics);
+            return createSuccessResponse(metrics, "Metrics e shitjeve u gjeten me sukses", HttpStatus.OK);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(null);
+            return handleException(e);
         }
     }
-
-    @DeleteMapping("/manager/{managerId}/delete/{invoiceId}")
-    public ResponseEntity<String> deleteInvoice(
-            @PathVariable Long userId,
-            @PathVariable Long invoiceId) {
+    @DeleteMapping("/{invoiceId}")
+    public ResponseEntity<Map<String, Object>> deleteInvoice( @PathVariable Long invoiceId) {
         try {
-            invoiceService.deleteInvoice(userId, invoiceId);
-            return ResponseEntity.ok("Fatura u fshi me sukses!");
+            checkManagerRole();
+            invoiceService.deleteInvoice( invoiceId);
+            return createSuccessResponse(null, "Fatura u fshi me sukses", HttpStatus.OK);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Gabim: " + e.getMessage());
+            return handleException(e);
         }
     }
 }

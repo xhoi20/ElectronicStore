@@ -26,7 +26,7 @@ public class Sector {
     @Column(name = "sector_name")
     private String sectorName;
 
-    @ManyToMany(mappedBy = "sectors", fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy = "sectors")
     @JsonIgnore
     private Set<User> users = new HashSet<>();
 

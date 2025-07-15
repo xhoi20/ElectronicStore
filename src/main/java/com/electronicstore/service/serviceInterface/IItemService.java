@@ -13,7 +13,7 @@ public interface IItemService {
     Iterable<Item> getAllItems();
 
     public boolean isStockLow(Long itemId, int threshold);
-    Item restockItem(Long userId,Long itemId, int additionalQuantity);
+    Item restockItem(Long itemId, int additionalQuantity);
 Optional<Item> getItemById(Long id);
 
 

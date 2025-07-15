@@ -96,7 +96,7 @@ public class InvoiceThymeleafController {
                                 @RequestParam Long userId,
                                 RedirectAttributes redirectAttributes) {
         try {
-            invoiceService.deleteInvoice(userId, invoiceId);
+            invoiceService.deleteInvoice( invoiceId);
             redirectAttributes.addFlashAttribute("message", "Invoice deleted successfully!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());

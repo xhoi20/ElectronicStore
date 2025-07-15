@@ -6,9 +6,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/categories")
-public class CategoryController {
+public class CategoryController extends BaseController{
 
     private final ICategoryService categoryService;
 
@@ -22,33 +24,50 @@ public class CategoryController {
     }
 
     @PostMapping
-    public ResponseEntity<Category> addCategory(@RequestBody Category category) {
+    public ResponseEntity<Map<String, Object>> addCategory(@RequestBody Map<String, String> categoryData) {
         try {
-            Category savedCategory = categoryService.addCategory(category);
-            return new ResponseEntity<>(savedCategory, HttpStatus.CREATED);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+            checkManagerRole();
+            String emmrikategorise = categoryData.get("emmrikategorise");
+            if (emmrikategorise == null || emmrikategorise.trim().isEmpty()) {
+                return createErrorResponse("Category name cannot be null or empty", HttpStatus.BAD_REQUEST);
+            }
+
+            Category category = new Category();
+            category.setEmmrikategorise(emmrikategorise);
+            Category createdCategory = categoryService.addCategory(category);
+            return createSuccessResponse(createdCategory, "Category added successfully", HttpStatus.CREATED);
+        } catch (Exception e) {
+            return handleException(e);
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCategory(@PathVariable long id) {
+    public ResponseEntity<Map<String, Object>> deleteCategory(@PathVariable Long id) {
         try {
+            checkManagerRole();
             categoryService.deleteCategory(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return createSuccessResponse(null, "Category deleted successfully", HttpStatus.OK);
+        } catch (Exception e) {
+            return handleException(e);
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Category> updateCategory(@PathVariable Long id, @RequestBody Category category) {
+    public ResponseEntity<Map<String, Object>> updateCategory(@PathVariable Long id, @RequestBody Map<String, String> categoryData) {
         try {
+            checkManagerRole();
+            String emmrikategorise = categoryData.get("emmrikategorise");
+            if (emmrikategorise == null || emmrikategorise.trim().isEmpty()) {
+                return createErrorResponse("Category name cannot be null or empty", HttpStatus.BAD_REQUEST);
+            }
+
+            Category category = new Category();
             category.setId(id);
+            category.setEmmrikategorise(emmrikategorise);
             Category updatedCategory = categoryService.updateCategory(category);
-            return new ResponseEntity<>(updatedCategory, HttpStatus.OK);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+            return createSuccessResponse(updatedCategory, "Category updated successfully", HttpStatus.OK);
+        } catch (Exception e) {
+            return handleException(e);
         }
     }
-}
+    }

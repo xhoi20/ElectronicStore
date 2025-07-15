@@ -16,7 +16,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-public class InvoiceService  implements IInvoiceService {
+public class InvoiceService extends BaseService implements IInvoiceService {
 
     @Autowired
     private InvoiceRepository invoiceRepository;
@@ -68,10 +68,12 @@ public Invoice createInvoice(Long userId, List<PurchaseItem> purchaseItems) thro
 }
     @Transactional
     public List<Invoice> getInvoicesByCashier(Long userId) {
-        return invoiceRepository.findByArketarId(userId);
+      User  user=getAuthenticatedUser();
+    return invoiceRepository.findByArketarId(userId);
     }
     @Transactional
     public double getDailyTotalByCashier(Long userId) {
+        User  user=getAuthenticatedUser();
         List<Invoice> invoices = getInvoicesByCashier(userId);
         return invoices.stream().mapToDouble(Invoice::getTotali).sum();
     }
@@ -79,40 +81,32 @@ public Invoice createInvoice(Long userId, List<PurchaseItem> purchaseItems) thro
 
     @Transactional
 public List<Invoice> getInvoicesBySector(Long userId) throws Exception {
-    User manager = userRepository.findById(userId)
-            .orElseThrow(() -> new Exception("Menaxheri nuk u gjet me ID: " + userId));
+        User  user=getAuthenticatedUser();
 
-    if (manager.getRole() != UserRole.MANAGER) {
-        throw new Exception("Perdoruesi nuk eshte menaxher");
-    }
-
-    List<Long> sectorIds = manager.getSectors().stream()
+    List<Long> sectorIds = user.getSectors().stream()
             .map(Sector::getId)
             .collect(Collectors.toList());
 
     return invoiceRepository.findByArketarSectorsIdIn(sectorIds);
 }
-
+@Transactional
     public SalesMetrics getSalesMetrics(Long userId) throws Exception {
-        List<Invoice> invoices = getInvoicesBySector(userId);
-        double totalRevenue = invoices.stream().mapToDouble(Invoice::getTotali).sum();
-        long totalInvoices = invoices.size();
-        long totalItemsSold = invoices.stream()
-                .flatMap(invoice -> invoice.getArtikujt().stream())
-                .mapToLong(PurchaseItem::getQuantity)
-                .sum();
+    User user = getAuthenticatedUser();
 
-        return new SalesMetrics(totalInvoices, totalItemsSold, totalRevenue);
-    }
+    List<Invoice> invoices = getInvoicesByCashier(userId);
+    double totalRevenue = invoices.stream().mapToDouble(Invoice::getTotali).sum();
+    long totalInvoices = invoices.size();
+    long totalItemsSold = invoices.stream()
+            .flatMap(invoice -> invoice.getArtikujt().stream())
+            .mapToLong(PurchaseItem::getQuantity)
+            .sum();
+
+    return new SalesMetrics(totalInvoices, totalItemsSold, totalRevenue);
+}
 
     @Transactional
-    public void deleteInvoice(Long userId, Long invoiceId) throws Exception {
-        User manager = userRepository.findById(userId)
-                .orElseThrow(() -> new Exception("Menaxheri nuk u gjet me ID: " + userId));
-
-        if (manager.getRole() != UserRole.MANAGER) {
-            throw new Exception("Perdoruesi nuk eshte menaxher");
-        }
+    public void deleteInvoice(Long invoiceId) throws Exception {
+    User  user=getAuthenticatedUser();
 
         Invoice invoice = invoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new Exception("Fatura nuk u gjet me ID: " + invoiceId));

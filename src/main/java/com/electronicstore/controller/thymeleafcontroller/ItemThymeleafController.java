@@ -102,11 +102,10 @@ public class ItemThymeleafController {
 
     @PostMapping("/restock/{id}")
     public String restockItem(@PathVariable Long id,
-                              @RequestParam Long userId,
                               @RequestParam int additionalQuantity,
                               RedirectAttributes redirectAttributes) {
         try {
-            itemService.restockItem(userId, id, additionalQuantity);
+            itemService.restockItem(id, additionalQuantity);
             redirectAttributes.addFlashAttribute("message", "Item restocked successfully!");
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());

@@ -15,7 +15,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class ItemService implements IItemService {
+public class ItemService extends BaseService implements IItemService {
 
     private final ItemRepository itemRepository;
     private final CategoryRepository categoryRepository;
@@ -28,19 +28,10 @@ private final PurchaseItemRepository purchaseItemRepository;
     }
 
 
-    private User validateUser(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " not found."));
-        System.out.println("User ID: " + user.getId() + ", Role: " + user.getRole());
-               // ", Sector: " + (user.getSector() != null ? user.getSector().getId() : "null"));
-        if (user.getRole() != UserRole.MANAGER && user.getRole() != UserRole.ADMIN) {
-            throw new IllegalArgumentException("User must be a manager or admin.");
-        }
-        return user;
-    }
+
     @Transactional
     public Item createItem(Long userId, String emri, Long categoryId, BigDecimal cmimi, int sasia, List<Long> supplierIds) {
-         validateUser(userId);
+User user =getAuthenticatedUser();
 
         Item item = new Item();
         item.setEmri(emri);
@@ -66,7 +57,7 @@ private final PurchaseItemRepository purchaseItemRepository;
     }
     @Transactional
     public Item updateItem(Long userId, Long itemId, String emri, BigDecimal cmimi, Integer sasia) {
-         validateUser(userId);
+        User user =getAuthenticatedUser();
 
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new IllegalArgumentException("Item not found!"));
@@ -86,13 +77,14 @@ private final PurchaseItemRepository purchaseItemRepository;
     }
    @Transactional
     public boolean isStockLow(Long itemId, int threshold) {
+       User user =getAuthenticatedUser();
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new IllegalArgumentException("Item not found!"));
         return item.getSasia() < threshold;
     }
     @Transactional
-    public Item restockItem(Long userId,Long itemId, int additionalQuantity) {
-        validateUser(userId);
+    public Item restockItem(Long itemId, int additionalQuantity) {
+        User user =getAuthenticatedUser();
         if (additionalQuantity <= 0) {
             throw new IllegalArgumentException("Quantity must be positive");
         }
