@@ -12,10 +12,10 @@
     </parent>
 
     <groupId>com.code</groupId>
-    <artifactId>Bank</artifactId>
+    <artifactId>Store</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>store</name>
-    <description>Bank Management System</description>
+    <description>Electronic Store System</description>
 
     <properties>
         <java.version>23</java.version>
@@ -42,6 +42,7 @@
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
             <artifactId>mssql-jdbc</artifactId>
+
         </dependency>
         <dependency>
             <groupId>org.flywaydb</groupId>

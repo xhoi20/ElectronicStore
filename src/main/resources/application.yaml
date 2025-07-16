@@ -16,9 +16,11 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: update
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.SQLServerDialect
+
+    open-in-view: false
+      #  properties:
+    #  hibernate:
+      # dialect: org.hibernate.dialect.SQLServerDialect
 jasypt:
   encryptor:
     password: your-secret-key
