@@ -19,7 +19,7 @@
             <th>Emri</th>
             <th>Email</th>
             <th>Roli</th>
-            <!-- <th>Sektori</th> --> <!-- Komento ose hiqe këtë rresht -->
+
             <th>Veprime</th>
         </tr>
         </thead>
@@ -30,7 +30,7 @@
             <td th:text="${user.email}"></td>
             <td th:text="${user.role}"></td>
 
-            <!-- <td th:text="${user.sector != null ? user.sector.sectorName : 'N/A'}"></td> -->
+
             <td>
                 <a th:href="@{/users/edit/{id}(id=${user.id})}" class="btn btn-warning btn-sm">Ndrysho</a>
                 <a th:href="@{/users/delete/{id}(id=${user.id})}" class="btn btn-danger btn-sm" onclick="return confirm('Je i sigurt?')">Fshij</a>

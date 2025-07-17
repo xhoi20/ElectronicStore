@@ -1,6 +1,5 @@
 package com.electronicstore.controller;
 
-import com.electronicstore.dto.UserLoginRequest;
 import com.electronicstore.dto.UserRegistrationRequest;
 import com.electronicstore.dto.UserUpdateRequest;
 import com.electronicstore.entity.User;
@@ -27,43 +26,15 @@ public class UserController extends BaseController{
         return userService.getAllUsers();
     }
 
+
 @PostMapping("register")
 public ResponseEntity<Map<String, Object>> registerUser(
         @RequestBody UserRegistrationRequest request,
         @RequestParam(required = false) Long sectorId,
         @RequestParam(required = false) Set<Long> managedSectorIds) {
-    try {
-        if (request.getName() == null || request.getName().trim().isEmpty()) {
-            return createErrorResponse("Name is missing or empty", HttpStatus.BAD_REQUEST);
-        }
-        if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
-            return createErrorResponse("Email is missing or empty", HttpStatus.BAD_REQUEST);
-        }
-        if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
-            return createErrorResponse("Password is missing or empty", HttpStatus.BAD_REQUEST);
-        }
-        if (request.getRole() == null) {
-            return createErrorResponse("Role cannot be null", HttpStatus.BAD_REQUEST);
-        }
-
-        UserRole role = UserRole.valueOf(request.getRole().toUpperCase());
-        checkManagerRole(); // Vetëm manager mund të krijojë përdorues të rinj
-        User createdUser = userService.registerUser(
-                request.getName(),
-                request.getEmail(),
-                request.getPassword(),
-                role,
-                sectorId!= null ? sectorId : request.getSectorId(),
-                managedSectorIds
-        );
-        return createSuccessResponse(createdUser, "User registered successfully", HttpStatus.CREATED);
-    } catch (Exception e) {
-        return handleException(e);
-    }
+    checkManagerRole();
+    return userService.registerUser(request, sectorId, managedSectorIds);
 }
-
-
-
 
     @GetMapping("id")
     public ResponseEntity<User> getUserById(@RequestParam Long id) {
@@ -75,9 +46,7 @@ public ResponseEntity<Map<String, Object>> registerUser(
 
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> deleteUserById(
-            @PathVariable Long id
-         ) {
+    public ResponseEntity<Map<String, Object>> deleteUserById(@PathVariable Long id) {
         try {
             checkManagerRole();
             userService.deleteUserById(id);
@@ -88,37 +57,14 @@ public ResponseEntity<Map<String, Object>> registerUser(
     }
 
 
-   @PutMapping("/{id}")
+   @PutMapping("{id}")
     public ResponseEntity<Map<String, Object>> updateUser(
             @PathVariable Long id,
-            @RequestBody UserUpdateRequest request,
+            @RequestBody UserUpdateRequest updateRequest,
             @RequestParam(required = false) Long sectorId,
             @RequestParam(required = false) Set<Long> managedSectorIds,
             @RequestParam(required = false) UserRole requestingUserRole) {
-        try {
-            if (request.getName() == null || request.getName().trim().isEmpty()) {
-                return createErrorResponse("Name is missing or empty", HttpStatus.BAD_REQUEST);
-            }
-            if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
-                return createErrorResponse("Email is missing or empty", HttpStatus.BAD_REQUEST);
-            }
-            if (request.getRole() == null) {
-                return createErrorResponse("Role cannot be null", HttpStatus.BAD_REQUEST);
-            }
-
-            UserRole role = UserRole.valueOf(request.getRole().toUpperCase());
-            checkManagerRole();
-            User updatedUser = userService.updateUser(
-                    id,
-                    request.getName(),
-                    request.getEmail(),
-                    role,
-                    sectorId,
-                    managedSectorIds
-            );
-            return createSuccessResponse(updatedUser, "User updated successfully", HttpStatus.OK);
-        } catch (Exception e) {
-            return handleException(e);
-        }
+       checkManagerRole();
+       return userService.updateUser(id, updateRequest, sectorId, managedSectorIds, requestingUserRole);
     }
 }

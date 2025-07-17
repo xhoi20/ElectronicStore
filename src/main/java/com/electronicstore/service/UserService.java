@@ -2,6 +2,8 @@ package com.electronicstore.service;
 
 import com.electronicstore.dto.AuthRequest;
 import com.electronicstore.dto.AuthResponse;
+import com.electronicstore.dto.UserRegistrationRequest;
+import com.electronicstore.dto.UserUpdateRequest;
 import com.electronicstore.entity.Purchase;
 import com.electronicstore.entity.Sector;
 import com.electronicstore.entity.User;
@@ -16,12 +18,13 @@ import jakarta.transaction.Transactional;
 import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -42,62 +45,86 @@ public class UserService extends BaseService implements IUserService {
  @Autowired
     private   JwtUtil jwtUtil;
 
-@Transactional
-public User registerUser(String emri, String email, String rawPassword,UserRole role,Long sectorId, Set<Long> managedSectorIds) {
 
-    if (role == null) {
-        throw new IllegalArgumentException("Role cannot be null");
-    }
 
-    User user = new User();
-    user.setName(emri);
-    user.setEmail(email);
-    user.setRole(role);
+    @Transactional
+    public ResponseEntity<Map<String, Object>> registerUser(
+            UserRegistrationRequest request, Long sectorId, Set<Long> managedSectorIds) {
+        try {
 
-    if (rawPassword != null && !rawPassword.trim().isEmpty()) {
-        StandardPBEStringEncryptor encryptor = new StandardPBEStringEncryptor();
-        encryptor.setPassword(encryptionKey);
-        encryptor.setAlgorithm(ENCRYPTION_ALGORITHM);
-        String encryptedPassword = encryptor.encrypt(rawPassword);
-        user.setPassword(encryptedPassword);
-    } else if (user.getId() ==null) {
-        throw new IllegalArgumentException("Password cannot be set empty for new users");
-    }
-    user = userRepository.save(user);
-    User authenticatedUser = getAuthenticatedUser();
-    if (authenticatedUser.getRole().equals(MANAGER)) {
-        if (role == UserRole.CASHIER && sectorId != null) {
-            Sector sector = sectorRepository.findById(sectorId)
-                    .orElseThrow(() -> new IllegalArgumentException("Sector not found: " + sectorId));
-            user.setSector(sector);
-            userRepository.save(user);
-        }
-
-        if (role == MANAGER && managedSectorIds != null && !managedSectorIds.isEmpty()) {
-            Iterable<Sector> sectorIterable = sectorRepository.findAllById(managedSectorIds);
-
-            Set<Sector> sectors = StreamSupport.stream(sectorIterable.spliterator(), false)
-                    .collect(Collectors.toSet());
-            if (sectors.size() != managedSectorIds.size()) {
-                throw new IllegalArgumentException("One or more sectors not found");
+            if (request.getName() == null || request.getName().trim().isEmpty()) {
+                return createErrorResponse("Name is missing or empty", HttpStatus.BAD_REQUEST);
+            }
+            if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+                return createErrorResponse("Email is missing or empty", HttpStatus.BAD_REQUEST);
+            }
+            if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
+                return createErrorResponse("Password is missing or empty", HttpStatus.BAD_REQUEST);
+            }
+            if (request.getRole() == null) {
+                return createErrorResponse("Role cannot be null", HttpStatus.BAD_REQUEST);
             }
 
-            for (Sector sector : sectors) {
+            UserRole role;
+            try {
+                role = UserRole.valueOf(request.getRole().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                return createErrorResponse("Invalid role provided", HttpStatus.BAD_REQUEST);
+            }
 
-                if (!user.getSectors().contains(sector)) {
-                    user.getSectors().add(sector);
-                }
+            if (role == null) {
+                throw new IllegalArgumentException("Role cannot be null");
+            }
 
 
+            getAuthenticatedUser();
+
+            User user = new User();
+            user.setName(request.getName());
+            user.setEmail(request.getEmail());
+            user.setRole(role);
+
+            if (request.getPassword() != null && !request.getPassword().trim().isEmpty()) {
+                StandardPBEStringEncryptor encryptor = new StandardPBEStringEncryptor();
+                encryptor.setPassword(encryptionKey);
+                encryptor.setAlgorithm(ENCRYPTION_ALGORITHM);
+                String encryptedPassword = encryptor.encrypt(request.getPassword());
+                user.setPassword(encryptedPassword);
+            } else if (user.getId() == null) {
+                throw new IllegalArgumentException("Password cannot be set empty for new users");
             }
             user = userRepository.save(user);
+
+            if (role == UserRole.CASHIER && sectorId != null) {
+                Sector sector = sectorRepository.findById(sectorId)
+                        .orElseThrow(() -> new IllegalArgumentException("Sector not found: " + sectorId));
+                user.setSector(sector);
+                userRepository.save(user);
+            }
+
+            if (role == MANAGER && managedSectorIds != null && !managedSectorIds.isEmpty()) {
+                Iterable<Sector> sectorIterable = sectorRepository.findAllById(managedSectorIds);
+                Set<Sector> sectors = StreamSupport.stream(sectorIterable.spliterator(), false)
+                        .collect(Collectors.toSet());
+                if (sectors.size() != managedSectorIds.size()) {
+                    throw new IllegalArgumentException("One or more sectors not found");
+                }
+
+                for (Sector sector : sectors) {
+                    if (!user.getSectors().contains(sector)) {
+                        user.getSectors().add(sector);
+                    }
+                }
+                user = userRepository.save(user);
+            }
+
+            return createSuccessResponse(user, "User registered successfully", HttpStatus.CREATED);
+        } catch (Exception e) {
+            return handleException(e);
         }
     }
-    return user;
-}
 
-
-@Transactional
+    @Transactional
 public AuthResponse loginUser(AuthRequest authRequest) {
     User user = userRepository.findByEmail(authRequest.getEmail());
     if (user == null) {
@@ -133,14 +160,14 @@ public AuthResponse loginUser(AuthRequest authRequest) {
 
 @Transactional
 public void deleteUserById(Long id) {
-    User authenticatedUser = getAuthenticatedUser();
+     getAuthenticatedUser();
     if (!userRepository.existsById(id)) {
         throw new RuntimeException("User with ID " + id + " not found.");
     }
     User user = userRepository.findById(id).get();
     List<Purchase> linkedPurchases = purchaseRepository.findByMenaxheriId(id);
     if (!linkedPurchases.isEmpty()) {
-        purchaseRepository.deleteAll(linkedPurchases); // Fshi të gjitha blerjet e lidhura
+        purchaseRepository.deleteAll(linkedPurchases);
     }
     for (Sector linkedSector : new HashSet<>(user.getSectors())) {
         linkedSector.getUsers().remove(user);
@@ -149,26 +176,77 @@ public void deleteUserById(Long id) {
 
     userRepository.deleteById(id);
 }
-
+//
+//    @Transactional
+//    public User updateUser(Long id, String name, String email,
+//                           UserRole role, Long sectorId, Set<Long> managedSectorIds) {
+//        User authenticatedUser = getAuthenticatedUser();
+//        Optional<User> userOptional = userRepository.findById(id);
+//        if (userOptional.isPresent()) {
+//            User user = userOptional.get();
+//            user.setName(name);
+//            user.setEmail(email);
+//
+//            user.setRole(role);
+//
+//
+//
+//            return userRepository.save(user);
+//        } else {
+//            throw new IllegalArgumentException("User with ID " + id + " not found.");
+//        }
+//    }
     @Transactional
-    public User updateUser(Long id, String name, String email,
-                           UserRole role, Long sectorId, Set<Long> managedSectorIds) {
-        User authenticatedUser = getAuthenticatedUser();
-        Optional<User> userOptional = userRepository.findById(id);
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            user.setName(name);
-            user.setEmail(email);
+    public ResponseEntity<Map<String,Object>>updateUser(Long id, UserUpdateRequest updateRequest,Long sectorId,Set<Long>managedSectorIds,UserRole requestingUserRole) {
+        try{
+            if(updateRequest.getName()==null||updateRequest.getName().trim().isEmpty()) {
+                return createErrorResponse("Name cannot be empty", HttpStatus.BAD_REQUEST);
 
-            user.setRole(role);
+            }
+            if(updateRequest.getEmail()==null||updateRequest.getEmail().trim().isEmpty()) {
+                return createErrorResponse("Email cannot be empty", HttpStatus.BAD_REQUEST);
 
+            }
+            if(updateRequest.getRole()==null||updateRequest.getRole().trim().isEmpty()) {
+                return createErrorResponse("Role cannot be empty", HttpStatus.BAD_REQUEST);
+            }
+            UserRole role;
+            try{
+                role = UserRole.valueOf(updateRequest.getRole().toUpperCase());
 
+            }catch(IllegalArgumentException e){
+                return createErrorResponse("Invalid role provided", HttpStatus.BAD_REQUEST);
+            }
+            getAuthenticatedUser();
+            Optional<User> userOptional = userRepository.findById(id);
+            if(userOptional.isPresent()) {
+                User user = userOptional.get();
+                user.setName(updateRequest.getName());
+                user.setEmail(updateRequest.getEmail());
+                user.setRole(role);
+                if(role==UserRole.CASHIER && sectorId!=null) {
+                    Sector sector=sectorRepository.findById(sectorId).orElseThrow(() -> new IllegalArgumentException("Sector not found"));
+                    user.setSector(sector);
+                }
+                if (role == MANAGER && managedSectorIds != null && !managedSectorIds.isEmpty()) {
+                    Iterable<Sector> sectorIterable = sectorRepository.findAllById(managedSectorIds);
+                    Set<Sector> sectors = StreamSupport.stream(sectorIterable.spliterator(), false)
+                            .collect(Collectors.toSet());
+                    if (sectors.size() != managedSectorIds.size()) {
+                        throw new IllegalArgumentException("One or more sectors not found");
+                    }
+                    user.setSectors(sectors);
+                }
+                return createSuccessResponse(userRepository.save(user), "User updated successfully", HttpStatus.OK);
+            }else{
+                return createErrorResponse("User not found", HttpStatus.NOT_FOUND);
+            }
 
-            return userRepository.save(user);
-        } else {
-            throw new IllegalArgumentException("User with ID " + id + " not found.");
+        }catch(Exception e) {
+            return handleException(e);
         }
     }
+
    @Transactional
     public Iterable<Sector> getAllSectors() {
         return sectorRepository.findAll();
