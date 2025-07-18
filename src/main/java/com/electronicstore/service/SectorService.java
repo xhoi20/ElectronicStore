@@ -7,14 +7,22 @@ import com.electronicstore.entity.UserRole;
 import com.electronicstore.repository.SectorRepository;
 import com.electronicstore.repository.UserRepository;
 import com.electronicstore.service.serviceInterface.ISectorService;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 
 import static com.electronicstore.entity.UserRole.MANAGER;
@@ -27,32 +35,30 @@ public class SectorService extends BaseService implements ISectorService {
     private UserRepository userRepository;
 
 
+ @Transactional
+    public ResponseEntity<Map<String, Object>> addSector(Map<String, String> sectorData) {
+getAuthenticatedUser();
 
+        try {
+            String sectorName = sectorData.get("SectorName");
+            if (sectorName == null || sectorName.trim().isEmpty()) {
+                return createErrorResponse("Sector name is missing or empty", HttpStatus.BAD_REQUEST);
+            }
 
-    @Transactional
-    public Sector addSector(String sectorName) {
-        if (sectorName == null || sectorName.trim().isEmpty()) {
-            throw new IllegalArgumentException("Sector name cannot be empty");
+            Sector sector = new Sector();
+            sector.setSectorName(sectorName);
+            Sector createdSector = sectorRepository.save(sector);
+            return createSuccessResponse(createdSector, "Sector added successfully", HttpStatus.CREATED);
+        } catch (Exception e) {
+            return handleException(e);
         }
-        User user = getAuthenticatedUser();
-
-
-        Sector sector = new Sector();
-        sector.setSectorName(sectorName);
-        sector = sectorRepository.save(sector);
-
-        if (user.getRole().equals(MANAGER)) {
-            sector.getUsers().add(user);
-            user.getSectors().add(sector);
-            userRepository.save(user);
-        }
-
-        return sector;
     }
+
+
     @Transactional
     public void deleteSector(Long sectorId) {
 
-        User user = getAuthenticatedUser();
+         getAuthenticatedUser();
         Optional<Sector> sectorOptional = sectorRepository.findById(sectorId);
         if (sectorOptional.isEmpty()) {
             throw new IllegalArgumentException("Sector not found with id: " + sectorId);
@@ -67,16 +73,6 @@ public class SectorService extends BaseService implements ISectorService {
 
         sectorRepository.deleteById(sectorId);
     }
-
-
-@Transactional
-public Sector updateSector(Long sectorId, String newSectorName) {
-    User user = getAuthenticatedUser();
-    Optional<Sector> sectorOptional = sectorRepository.findById(sectorId);
-    Sector sector = sectorOptional.get();
-    sector.setSectorName(newSectorName);
-    return sectorRepository.save(sector);
-}
     @Transactional
     public Iterable<Sector> getAllSectors() {
         return sectorRepository.findAll();
@@ -86,4 +82,22 @@ public Sector updateSector(Long sectorId, String newSectorName) {
             return sectorRepository.findById(id);
 
     }
+@Transactional
+public ResponseEntity<Map<String, Object>> updateSector( Long sectorId, Map<String, String> sectorData) {
+getAuthenticatedUser();
+
+    try {
+        String newSectorName = sectorData.get("SectorName");
+        if (newSectorName == null || newSectorName.trim().isEmpty()) {
+            return createErrorResponse("Sector name cannot be empty", HttpStatus.BAD_REQUEST);
+        }
+        Sector sector = sectorRepository.findById(sectorId)
+                .orElseThrow(() -> new EntityNotFoundException("Sector not found with ID: " + sectorId));
+        sector.setSectorName(newSectorName);
+        Sector updatedSector = sectorRepository.save(sector);
+        return createSuccessResponse(updatedSector, "Sector updated successfully", HttpStatus.OK);
+    } catch (Exception e) {
+        return handleException(e);
+    }
+}
 }

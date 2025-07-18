@@ -1,14 +1,16 @@
 package com.electronicstore.service.serviceInterface;
 
 import com.electronicstore.entity.Purchase;
+import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Optional;
 
 public interface IPurchaseService {
-    Purchase addPurchase(Long userId, LocalDateTime dataBlerjes, Long furnitorId, double totaliKostos, int sasia);
+    public ResponseEntity<Map<String, Object>> addPurchase(Map<String, Object> purchaseData);
     public void deletePurchase( Long id);
-    Purchase updatePurchase( Long purchaseId, LocalDateTime dataBlerjes, Long furnitorId, Double totaliKostos, Integer sasia);
+    public ResponseEntity<Map<String, Object>> updatePurchase(Long id, Map<String, Object> purchaseData);
  Iterable<Purchase> getAllPurchases();
 Optional<Purchase> getPurchaseById(Long purchaseId);
 }

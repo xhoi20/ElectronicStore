@@ -4,21 +4,14 @@ import com.electronicstore.entity.*;
 import com.electronicstore.repository.InvoiceRepository;
 import com.electronicstore.repository.ItemRepository;
 import com.electronicstore.repository.PurchaseRepository;
-import com.electronicstore.service.ItemService;
-import com.electronicstore.service.PurchaseItemService;
 import com.electronicstore.service.serviceInterface.IPurchaseItemService;
-import com.electronicstore.service.serviceInterface.IPurchaseService;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import java.util.HashSet;
-import java.util.List;
-
+import java.util.HashMap;
+import java.util.Map;
 @Controller
 @RequestMapping ("/purchase-items")
 public class PurchaseItemThymeleafController {
@@ -53,7 +46,7 @@ public class PurchaseItemThymeleafController {
 
     @PostMapping("/save")
     public String savePurchaseItem(@ModelAttribute("purchaseItem") PurchaseItem purchaseItem,
-                                   @RequestParam Long userId,
+
                                    RedirectAttributes redirectAttributes) {
         try {
             Long purchaseId = purchaseItem.getPurchase() != null ? purchaseItem.getPurchase().getId() : null;
@@ -63,19 +56,21 @@ public class PurchaseItemThymeleafController {
 
             if (purchaseId == null || itemId == null) {
                 redirectAttributes.addFlashAttribute("error", "Purchase and Item are required.");
-                return "redirect:/purchase-items/form?userId=" + userId;
+                return "redirect:/purchase-items/form?userId=" ;
             }
+            Map<String, Object> purchaseData = new HashMap<>();
 
-            if (purchaseItem.getId() == null) {
-                purchaseItemService.addPurchaseItem(userId, purchaseId, itemId, quantity, invoiceId);
+            purchaseData.put("purchaseId", purchaseId);
+            purchaseData.put("itemId", itemId);
+            purchaseData.put("quantity", quantity);
+            purchaseData.put("invoiceId", invoiceId);
+
+                purchaseItemService.addPurchaseItem(purchaseData);
                 redirectAttributes.addFlashAttribute("message", "Purchase item created.");
-            } else {
-                purchaseItemService.updatePurchaseItem(purchaseItem.getId(), itemId, quantity, invoiceId);
-                redirectAttributes.addFlashAttribute("message", "Purchase item updated.");
-            }
+
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
-            return "redirect:/purchase-items/form?userId=" + userId;
+            return "redirect:/purchase-items/form?userId=" ;
         }
         return "redirect:/purchase-items";
     }
@@ -96,7 +91,17 @@ public class PurchaseItemThymeleafController {
     @PostMapping("/edit/{id}")
     public String updatePurchaseItem(@PathVariable Long id, @ModelAttribute("purchaseItem") PurchaseItem purchaseItem) {
         try {
-            purchaseItemService.updatePurchaseItem(id, purchaseItem.getPurchase().getId(), purchaseItem.getQuantity(),purchaseItem.getInvoice().getId());
+            Long purchaseId = purchaseItem.getPurchase() != null ? purchaseItem.getPurchase().getId() : null;
+            Long itemId = purchaseItem.getItem() != null ? purchaseItem.getItem().getId() : null;
+            Integer quantity = purchaseItem.getQuantity();
+            Long invoiceId = purchaseItem.getInvoice() != null ? purchaseItem.getInvoice().getId() : null;
+            Map<String, Object> purchaseData = new HashMap<>();
+
+            purchaseData.put("purchaseId", purchaseId);
+            purchaseData.put("itemId", itemId);
+            purchaseData.put("quantity", quantity);
+            purchaseData.put("invoiceId", invoiceId);
+            purchaseItemService.updatePurchaseItem(id,purchaseData);
             return "redirect:/purchase-items";
         } catch (IllegalArgumentException e) {
             System.out.println("Error: " + e.getMessage());

@@ -1,7 +1,6 @@
 
 package com.electronicstore.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -58,7 +57,7 @@ public class User {
     public void setSector(Sector sector) {
         if (this.role == UserRole.CASHIER && sector != null) {
             this.sectors.add(sector);
-            //sector.getUsers().add(this);
+
             if (sector.getUsers() != null) {
                 sector.getUsers().add(this);
             }

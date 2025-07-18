@@ -176,26 +176,7 @@ public void deleteUserById(Long id) {
 
     userRepository.deleteById(id);
 }
-//
-//    @Transactional
-//    public User updateUser(Long id, String name, String email,
-//                           UserRole role, Long sectorId, Set<Long> managedSectorIds) {
-//        User authenticatedUser = getAuthenticatedUser();
-//        Optional<User> userOptional = userRepository.findById(id);
-//        if (userOptional.isPresent()) {
-//            User user = userOptional.get();
-//            user.setName(name);
-//            user.setEmail(email);
-//
-//            user.setRole(role);
-//
-//
-//
-//            return userRepository.save(user);
-//        } else {
-//            throw new IllegalArgumentException("User with ID " + id + " not found.");
-//        }
-//    }
+
     @Transactional
     public ResponseEntity<Map<String,Object>>updateUser(Long id, UserUpdateRequest updateRequest,Long sectorId,Set<Long>managedSectorIds,UserRole requestingUserRole) {
         try{

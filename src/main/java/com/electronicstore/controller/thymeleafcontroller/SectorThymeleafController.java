@@ -10,6 +10,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.HashMap;
+import java.util.Map;
 
 
 @Controller
@@ -31,9 +33,10 @@ public class SectorThymeleafController {
         return "sector-form";
     }
     @PostMapping
-    public String createSector(@RequestParam String sectorName, @RequestParam Long userId, RedirectAttributes redirectAttributes) {
+    public String createSector(@RequestParam Map<String, String> sectorData, RedirectAttributes redirectAttributes) {
         try {
-            sectorService.addSector(sectorName);
+
+            sectorService.addSector(sectorData);
             redirectAttributes.addFlashAttribute("message", "Sector created successfully!");
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
@@ -49,9 +52,9 @@ public class SectorThymeleafController {
     }
 
     @PostMapping("/edit/{id}")
-    public String updateSector(@PathVariable Long id, @RequestParam String sectorName, RedirectAttributes redirectAttributes) {
+    public String updateSector(@PathVariable Long id, @RequestParam   Map<String, String> sectorData, RedirectAttributes redirectAttributes) {
         try {
-            sectorService.updateSector(id, sectorName);
+            sectorService.updateSector(id, sectorData);
             redirectAttributes.addFlashAttribute("message", "Sector updated successfully!");
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());

@@ -1,16 +1,16 @@
 package com.electronicstore.controller.thymeleafcontroller;
 
 import com.electronicstore.entity.Supplier;
-import com.electronicstore.entity.User;
-import com.electronicstore.entity.UserRole;
+import jakarta.validation.Valid;
 import org.springframework.ui.Model;
-import com.electronicstore.service.SupplierService;
 import com.electronicstore.service.serviceInterface.ISupplierService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashSet;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import java.util.HashMap;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/suppliers")
@@ -29,15 +29,32 @@ public String addSupplier(Model model) {
         model.addAttribute("supplier", new Supplier());
         return "supplier-form";
   }
-  @PostMapping("/save")
-    public String saveSupplier(@ModelAttribute("supplier") Supplier supplier) {
-        if(supplier.getId()==null){
-            supplierService.addSupplier(supplier);
-        }else{
-            supplierService.updateSupplier(supplier);
-        }
-      return "redirect:/suppliers";
-  }
+
+@PostMapping("/save")
+public String saveSupplier(@Valid @ModelAttribute("supplier") Supplier supplier,
+                           BindingResult result,
+                           RedirectAttributes redirectAttributes) {
+    if (result.hasErrors()) {
+        return "supplier-form";
+    }
+    try {
+
+        Map<String, String> supplierData = new HashMap<>();
+        supplierData.put("name", supplier.getName());
+        supplierData.put("email", supplier.getEmail());
+        supplierData.put("adresa", supplier.getAdresa());
+
+
+            supplierService.addSupplier(supplierData);
+            redirectAttributes.addFlashAttribute("message", "Supplier added successfully");
+
+    } catch (Exception e) {
+        redirectAttributes.addFlashAttribute("error", "Error: " + e.getMessage());
+        return "redirect:/suppliers";
+    }
+    return "redirect:/suppliers";
+}
+
   @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable Long id, Model model) {
       Supplier supplier = supplierService.getSupplierById(id)
@@ -50,7 +67,12 @@ public String addSupplier(Model model) {
   @PostMapping("/edit/{id}")
   public String updateSupplier(@PathVariable Long id, @ModelAttribute("supplier") Supplier supplier) {
       try {
-          supplierService.updateSupplier(supplier);
+          Map<String, String> supplierData = new HashMap<>();
+          supplierData.put("name", supplier.getName());
+          supplierData.put("email", supplier.getEmail());
+          supplierData.put("adresa", supplier.getAdresa());
+
+          supplierService.updateSupplier(id,supplierData);
           return "redirect:/suppliers";
       } catch (IllegalArgumentException e) {
           System.out.println("Error: " + e.getMessage());
