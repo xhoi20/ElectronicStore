@@ -5,7 +5,6 @@ import com.electronicstore.service.serviceInterface.ICategoryService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.Map;
 
 @RestController
@@ -27,15 +26,8 @@ public class CategoryController extends BaseController{
     public ResponseEntity<Map<String, Object>> addCategory(@RequestBody Map<String, String> categoryData) {
         try {
             checkManagerRole();
-            String emmrikategorise = categoryData.get("emmrikategorise");
-            if (emmrikategorise == null || emmrikategorise.trim().isEmpty()) {
-                return createErrorResponse("Category name cannot be null or empty", HttpStatus.BAD_REQUEST);
-            }
+            return categoryService.addCategory(categoryData);
 
-            Category category = new Category();
-            category.setEmmrikategorise(emmrikategorise);
-            Category createdCategory = categoryService.addCategory(category);
-            return createSuccessResponse(createdCategory, "Category added successfully", HttpStatus.CREATED);
         } catch (Exception e) {
             return handleException(e);
         }
@@ -56,16 +48,8 @@ public class CategoryController extends BaseController{
     public ResponseEntity<Map<String, Object>> updateCategory(@PathVariable Long id, @RequestBody Map<String, String> categoryData) {
         try {
             checkManagerRole();
-            String emmrikategorise = categoryData.get("emmrikategorise");
-            if (emmrikategorise == null || emmrikategorise.trim().isEmpty()) {
-                return createErrorResponse("Category name cannot be null or empty", HttpStatus.BAD_REQUEST);
-            }
+            return  categoryService.updateCategory(id,categoryData);
 
-            Category category = new Category();
-            category.setId(id);
-            category.setEmmrikategorise(emmrikategorise);
-            Category updatedCategory = categoryService.updateCategory(category);
-            return createSuccessResponse(updatedCategory, "Category updated successfully", HttpStatus.OK);
         } catch (Exception e) {
             return handleException(e);
         }

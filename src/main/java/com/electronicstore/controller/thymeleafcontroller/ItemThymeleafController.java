@@ -1,17 +1,19 @@
 package com.electronicstore.controller.thymeleafcontroller;
-
 import com.electronicstore.entity.Item;
 import com.electronicstore.service.serviceInterface.ICategoryService;
 import com.electronicstore.service.serviceInterface.IItemService;
 import com.electronicstore.service.serviceInterface.ISupplierService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/items")
@@ -42,12 +44,18 @@ public class ItemThymeleafController {
 
     @PostMapping("/save")
     public String saveItem(@ModelAttribute("item") Item item,
-                           @RequestParam Long userId,
+
                            @RequestParam(required = false) Long categoryId,
                            @RequestParam(required = false) List<Long> supplierIds,
                            RedirectAttributes redirectAttributes) {
         try {
-            itemService.createItem(userId, item.getEmri(), categoryId, item.getCmimi(), item.getSasia(), supplierIds);
+            Map<String, Object> itemData = new HashMap<>();
+            itemData.put("emri", item.getEmri());
+            itemData.put("categoryId", categoryId);
+            itemData.put("cmimi", item.getCmimi());
+            itemData.put("sasia", item.getSasia());
+            itemData.put("supplierIds", supplierIds);
+            itemService.createItem(itemData);
             redirectAttributes.addFlashAttribute("message", "Item created successfully!");
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
@@ -68,10 +76,14 @@ public class ItemThymeleafController {
     @PostMapping("/edit/{id}")
     public String updateItem(@PathVariable Long id,
                              @ModelAttribute("item") Item item,
-                             @RequestParam Long userId,
                              RedirectAttributes redirectAttributes) {
         try {
-            itemService.updateItem(userId, id, item.getEmri(), item.getCmimi(), item.getSasia());
+            Map<String, Object> itemData = new HashMap<>();
+            itemData.put("emri", item.getEmri());
+            itemData.put("cmimi", item.getCmimi());
+            itemData.put("sasia", item.getSasia());
+
+            itemService.updateItem(id,itemData);
             redirectAttributes.addFlashAttribute("message", "Item updated successfully!");
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
@@ -105,8 +117,15 @@ public class ItemThymeleafController {
                               @RequestParam int additionalQuantity,
                               RedirectAttributes redirectAttributes) {
         try {
-            itemService.restockItem(id, additionalQuantity);
+            Map<String, Object> itemData = new HashMap<>();
+            itemData.put("additionalQuantity", additionalQuantity);
+            ResponseEntity<Map<String, Object>> response = itemService.restockItem(id, itemData);
             redirectAttributes.addFlashAttribute("message", "Item restocked successfully!");
+            if (response.getStatusCode() == HttpStatus.OK) {
+                redirectAttributes.addFlashAttribute("message", "Item restocked successfully!");
+            } else {
+                redirectAttributes.addFlashAttribute("error", response.getBody().get("message"));
+            }
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }

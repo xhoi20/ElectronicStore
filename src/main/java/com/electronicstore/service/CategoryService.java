@@ -1,14 +1,14 @@
 package com.electronicstore.service;
 
 import com.electronicstore.entity.Category;
-import com.electronicstore.entity.User;
 import com.electronicstore.repository.CategoryRepository;
-import com.electronicstore.repository.UserRepository;
 import com.electronicstore.service.serviceInterface.ICategoryService;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
 import java.util.Optional;
 @Service
 public class CategoryService  extends BaseService implements ICategoryService {
@@ -16,26 +16,32 @@ public class CategoryService  extends BaseService implements ICategoryService {
     public CategoryService(CategoryRepository categoryRepository) {
         this.categoryRepository = categoryRepository;
     }
-
-
     @Transactional
-
     public Iterable<Category> getAllCategories() {
         return categoryRepository.findAll();
     }
+
     @Transactional
-    public Category addCategory(Category category){
-        User user =getAuthenticatedUser();
-        if(category.getEmmrikategorise()==null||category.getEmmrikategorise().trim().isEmpty()){
-            throw new IllegalArgumentException("Category name cannot be null or empty");
+    public ResponseEntity<Map<String, Object>> addCategory(Map<String, String> categoryData) {
+        getAuthenticatedUser();
+        try {
+            String emmrikategorise = categoryData.get("emmrikategorise");
+            if (emmrikategorise == null || emmrikategorise.trim().isEmpty()) {
+                return createErrorResponse("Category name cannot be null or empty", HttpStatus.BAD_REQUEST);
+            }
 
+            Category category = new Category();
+            category.setEmmrikategorise(emmrikategorise);
+            Category createdCategory = categoryRepository.save(category);
+            return createSuccessResponse(createdCategory, "Category added successfully", HttpStatus.CREATED);
+        } catch (Exception e) {
+            return handleException(e);
         }
-
-        return categoryRepository.save(category);
     }
+
     @Transactional
     public void deleteCategory(Long id){
-        User user =getAuthenticatedUser();
+        getAuthenticatedUser();
         if(!categoryRepository.existsById(id)){
             throw new IllegalArgumentException("Category does not exist");
         }
@@ -43,22 +49,22 @@ public class CategoryService  extends BaseService implements ICategoryService {
 
     }
     @Transactional
-    public Category updateCategory(Category category){
-        User user =getAuthenticatedUser();
-        Optional<Category> optionalCategory = categoryRepository.findById(category.getId());
-        if(!optionalCategory.isPresent()){
-            throw new IllegalArgumentException("Category does not exist");
-        }
-        if(category.getEmmrikategorise()==null||category.getEmmrikategorise().trim().isEmpty()){
-            throw new IllegalArgumentException("Category name cannot be null or empty");
+    public ResponseEntity<Map<String, Object>> updateCategory( Long id,  Map<String, String> categoryData) {
+        try {
 
-        }
-        Category existingCategory=optionalCategory.get();
-        existingCategory.setEmmrikategorise(category.getEmmrikategorise());
-        return categoryRepository.save(existingCategory);
+                  String emmrikategorise = categoryData.get("emmrikategorise");
+            if (emmrikategorise == null || emmrikategorise.trim().isEmpty()) {
+                return createErrorResponse("Category name cannot be null or empty", HttpStatus.BAD_REQUEST);
+            }
 
-
-    }
+            Category category = new Category();
+            category.setId(id);
+            category.setEmmrikategorise(emmrikategorise);
+            Category updatedCategory = categoryRepository.save(category);
+            return createSuccessResponse(updatedCategory, "Category updated successfully", HttpStatus.OK);
+        } catch (Exception e) {
+            return handleException(e);
+        }}
     @Transactional
     public Optional<Category> getCategoryById(Long id){
         return categoryRepository.findById(id);

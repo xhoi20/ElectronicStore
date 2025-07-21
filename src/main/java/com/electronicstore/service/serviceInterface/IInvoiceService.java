@@ -1,5 +1,6 @@
 package com.electronicstore.service.serviceInterface;
 
+import com.electronicstore.dto.PurchaseItemRequest;
 import com.electronicstore.entity.Invoice;
 import com.electronicstore.entity.PurchaseItem;
 import com.electronicstore.service.InvoiceService;
@@ -12,7 +13,7 @@ import java.util.Optional;
 public interface IInvoiceService {
 
 
-    Invoice createInvoice(Long userId, List<PurchaseItem> purchaseItems) throws Exception;
+    public Invoice createInvoice(Long userId, List<PurchaseItemRequest> purchaseItemRequests) throws Exception;
 
 
     List<Invoice> getInvoicesByCashier(Long userId);

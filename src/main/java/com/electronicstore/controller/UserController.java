@@ -5,12 +5,10 @@ import com.electronicstore.dto.UserUpdateRequest;
 import com.electronicstore.entity.User;
 import com.electronicstore.entity.UserRole;
 import com.electronicstore.service.serviceInterface.IUserService;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;

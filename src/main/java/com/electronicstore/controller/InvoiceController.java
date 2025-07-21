@@ -27,29 +27,13 @@ public class InvoiceController extends BaseController{
 
     @Autowired
     private IInvoiceService invoiceService;
-@Autowired
-private ItemRepository itemRepository;
-@Autowired
-private PurchaseRepository purchaseRepository;
 
 @PostMapping("/create")
 public ResponseEntity<?> createInvoice(
         @RequestParam Long cashierId,
         @RequestBody List<PurchaseItemRequest> purchaseItemRequests) {
     try {
-        List<PurchaseItem> purchaseItems = new ArrayList<>();
-        for (PurchaseItemRequest req : purchaseItemRequests) {
-            PurchaseItem item = new PurchaseItem();
-            item.setItem(itemRepository.findById(req.getItemId())
-                    .orElseThrow(() -> new IllegalArgumentException("Item not found with ID: " + req.getItemId())));
-            item.setPurchase(purchaseRepository.findById(req.getPurchaseId())
-                    .orElseThrow(() -> new IllegalArgumentException("Purchase not found with ID: " + req.getPurchaseId())));
-          item.setQuantity(req.getQuantity());
-
-            purchaseItems.add(item);
-        }
-
-        Invoice invoice = invoiceService.createInvoice(cashierId, purchaseItems);
+        Invoice invoice = invoiceService.createInvoice(cashierId, purchaseItemRequests);
         return ResponseEntity.ok(invoice);
     } catch (IllegalArgumentException e) {
         return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
@@ -57,9 +41,7 @@ public ResponseEntity<?> createInvoice(
         return ResponseEntity.badRequest().body(new ErrorResponse("An unexpected error occurred: " + e.getMessage()));
     }
 }
-
-
-    static class ErrorResponse {
+static class ErrorResponse {
         private String message;
 
         public ErrorResponse(String message) {

@@ -1,6 +1,7 @@
 
 package com.electronicstore.service;
 
+import com.electronicstore.dto.PurchaseItemRequest;
 import com.electronicstore.entity.*;
 import com.electronicstore.repository.InvoiceRepository;
 import com.electronicstore.repository.ItemRepository;
@@ -10,7 +11,7 @@ import com.electronicstore.service.serviceInterface.IInvoiceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -28,14 +29,23 @@ public class InvoiceService extends BaseService implements IInvoiceService {
     private PurchaseRepository purchaseRepository;
 
 @Transactional
-public Invoice createInvoice(Long userId, List<PurchaseItem> purchaseItems) throws Exception {
+public Invoice createInvoice(Long userId, List<PurchaseItemRequest> purchaseItemRequests) throws Exception {
     User cashier = userRepository.findById(userId)
             .orElseThrow(() -> new Exception("Arketari nuk u gjet me ID: " + userId));
 
     if (cashier.getRole() != UserRole.CASHIER) {
         throw new Exception("Perdoruesi nuk është arketar");
     }
-
+    List<PurchaseItem> purchaseItems = new ArrayList<>();
+    for (PurchaseItemRequest req : purchaseItemRequests) {
+        PurchaseItem item = new PurchaseItem();
+        item.setItem(itemRepository.findById(req.getItemId())
+                .orElseThrow(() -> new IllegalArgumentException("Artikulli nuk u gjet me ID: " + req.getItemId())));
+        item.setPurchase(purchaseRepository.findById(req.getPurchaseId())
+                .orElseThrow(() -> new IllegalArgumentException("Purchase nuk u gjet me ID: " + req.getPurchaseId())));
+        item.setQuantity(req.getQuantity());
+        purchaseItems.add(item);
+    }
     Invoice invoice = new Invoice();
     invoice.setArketar(cashier);
     invoice.setArtikujt(purchaseItems);
@@ -68,12 +78,12 @@ public Invoice createInvoice(Long userId, List<PurchaseItem> purchaseItems) thro
 }
     @Transactional
     public List<Invoice> getInvoicesByCashier(Long userId) {
-      User  user=getAuthenticatedUser();
+      getAuthenticatedUser();
     return invoiceRepository.findByArketarId(userId);
     }
     @Transactional
     public double getDailyTotalByCashier(Long userId) {
-        User  user=getAuthenticatedUser();
+     getAuthenticatedUser();
         List<Invoice> invoices = getInvoicesByCashier(userId);
         return invoices.stream().mapToDouble(Invoice::getTotali).sum();
     }
@@ -91,7 +101,7 @@ public List<Invoice> getInvoicesBySector(Long userId) throws Exception {
 }
 @Transactional
     public SalesMetrics getSalesMetrics(Long userId) throws Exception {
-    User user = getAuthenticatedUser();
+     getAuthenticatedUser();
 
     List<Invoice> invoices = getInvoicesByCashier(userId);
     double totalRevenue = invoices.stream().mapToDouble(Invoice::getTotali).sum();
@@ -106,7 +116,7 @@ public List<Invoice> getInvoicesBySector(Long userId) throws Exception {
 
     @Transactional
     public void deleteInvoice(Long invoiceId) throws Exception {
-    User  user=getAuthenticatedUser();
+    getAuthenticatedUser();
 
         Invoice invoice = invoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new Exception("Fatura nuk u gjet me ID: " + invoiceId));

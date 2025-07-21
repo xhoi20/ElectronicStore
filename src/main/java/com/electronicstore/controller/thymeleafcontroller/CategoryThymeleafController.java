@@ -8,6 +8,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Controller
 @RequestMapping("/categories")
 public class CategoryThymeleafController {
@@ -26,7 +29,9 @@ public class CategoryThymeleafController {
     }
     @PostMapping("/save")
     public String saveCategory(@ModelAttribute("category") Category category) {
-        categoryService.addCategory(category);
+        Map<String, String> categoryData = new HashMap<>();
+        categoryData.put("Emmrikategorise", category.getEmmrikategorise());
+        categoryService.addCategory(categoryData);
         return "redirect:/categories";
     }
     @GetMapping("/edit/{id}")
@@ -40,7 +45,9 @@ public class CategoryThymeleafController {
     @PostMapping("/edit/{id}")
     public String updateCategory(@PathVariable Long id, @ModelAttribute("category") Category category) {
         try {
-            categoryService.updateCategory(category);
+            Map<String, String> categoryData = new HashMap<>();
+            categoryData.put("Emmrikategorise", category.getEmmrikategorise());
+            categoryService.updateCategory(id,categoryData);
             return "redirect:/categories";
         } catch (IllegalArgumentException e) {
             System.out.println("Error: " + e.getMessage());
