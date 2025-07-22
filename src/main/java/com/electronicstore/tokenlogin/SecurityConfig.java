@@ -40,10 +40,32 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
-                       .requestMatchers("/api/auth/**","/users/**","/login/**","/sectors/**").permitAll()
-                        .requestMatchers("/api/sectors/**").authenticated()
 
-                        .anyRequest().authenticated())//permitAll())authenticated())
+                        .requestMatchers("/login", "/api/auth/**").permitAll()
+
+                        .requestMatchers("/users/user-list", "/suppliers", "/sectors", "/purchases",
+                                "/purchase-items", "/items", "/invoices", "/categories").authenticated()
+
+                        .requestMatchers("/users/edit/**", "/users/delete/**",
+                                "/suppliers/edit/**", "/suppliers/delete/**",
+                                "/sectors/edit/**", "/sectors/delete/**",
+                                "/purchases/edit/**", "/purchases/delete/**",
+                                "/purchase-items/edit/**", "/purchase-items/delete/**",
+                                "/items/edit/**", "/items/delete/**", "/items/restock/**",
+                                "/invoices/delete/**", "/categories/edit/**", "/categories/delete/**")
+                        .hasAnyAuthority("MANAGER")
+
+                        .requestMatchers("/users/user-form", "/suppliers/add", "/sectors/add",
+                                "/purchases/add", "/purchase-items/add", "/items/add",
+                                "/invoices/add", "/categories/add")
+                        .hasAnyAuthority("ROLE_MANAGER")
+
+                        .anyRequest().authenticated()
+                )
+//                       .requestMatchers("/api/auth/**","/users/**","/login/**","/sectors/**").permitAll()
+//                        .requestMatchers("/api/sectors/**").authenticated()
+
+                        //.anyRequest().permitAll())//authenticated())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(new JwtAuthenticationFilter(jwtUtil, userDetailsService), UsernamePasswordAuthenticationFilter.class);

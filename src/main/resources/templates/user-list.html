@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!--/*<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Lista e Perdoruesve</title>
@@ -39,5 +39,58 @@
         </tbody>
     </table>
 </div>
+</body>
+</html>*/-->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Lista e Përdoruesve</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+</head>
+<body>
+<div class="container">
+    <h1>Lista e Përdoruesve</h1>
+    <div th:if="${role == 'MANAGER'}">
+        <a href="/users/user-form" class="btn btn-primary mb-3">Shto Përdorues</a>
+    </div>
+    <div th:if="${email}">
+        <p>Mirë se vini, <span th:text="${email}"></span>! (Roli: <span th:text="${role}"></span>)</p>
+        <a th:href="@{/login}">Dil</a>
+    </div>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Emri</th>
+            <th>Email</th>
+            <th>Roli</th>
+            <th th:if="${role == 'MANAGER'}">Veprime</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="user : ${users}">
+            <td th:text="${user.id}"></td>
+            <td th:text="${user.name}"></td>
+            <td th:text="${user.email}"></td>
+            <td th:text="${user.role}"></td>
+            <td th:if="${role == 'MANAGER'}">
+                <a th:href="@{/users/edit/{id}(id=${user.id})}" class="btn btn-warning btn-sm">Ndrysho</a>
+                <a th:href="@{/users/delete/{id}(id=${user.id})}" class="btn btn-danger btn-sm" onclick="return confirm('Je i sigurt?')">Fshij</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/users/user-list', {
+            method: 'GET',
+            credentials: 'include'
+        })
+            .then(response => response.text())
+            .then(data => console.log(data))
+            .catch(error => console.error('Error:', error));
+    });
+</script>
 </body>
 </html>

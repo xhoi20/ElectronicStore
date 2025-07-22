@@ -20,7 +20,7 @@ public class JwtUtil {
 
     private final SecretKey secretKey;
 
-    @Value("${jasypt.encryptor.jwt.expiration}")
+    @Value("${jasypt.encryptor.jwt.expiration:86400000}")
     private Long expiration;
 
 

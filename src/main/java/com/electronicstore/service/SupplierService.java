@@ -30,7 +30,7 @@ public class SupplierService  extends BaseService implements ISupplierService {
 @Transactional
 public ResponseEntity<Map<String, Object>> addSupplier( Map<String, String> supplierData) {
 
-    getAuthenticatedUser();
+    //getAuthenticatedUser();
     try{
         String name = supplierData.get("name");
         if (name == null || name.trim().isEmpty()) {

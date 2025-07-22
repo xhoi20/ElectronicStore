@@ -77,7 +77,7 @@ public class UserService extends BaseService implements IUserService {
             }
 
 
-            getAuthenticatedUser();
+           getAuthenticatedUser();
 
             User user = new User();
             user.setName(request.getName());
@@ -198,7 +198,10 @@ public void deleteUserById(Long id) {
             }catch(IllegalArgumentException e){
                 return createErrorResponse("Invalid role provided", HttpStatus.BAD_REQUEST);
             }
-            getAuthenticatedUser();
+          getAuthenticatedUser();
+
+
+
             Optional<User> userOptional = userRepository.findById(id);
             if(userOptional.isPresent()) {
                 User user = userOptional.get();
