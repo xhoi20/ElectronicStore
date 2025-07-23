@@ -27,11 +27,16 @@ public class LoginThymeleafController {
     @PostMapping("/login")
     public String processLogin(@ModelAttribute AuthRequest authRequest, Model model, HttpServletResponse response) {
         try {
+            Cookie oldCookie = new Cookie("jwtToken", null);
+            oldCookie.setPath("/");
+            oldCookie.setHttpOnly(true);
+            oldCookie.setMaxAge(0); // Fshin cookie-n menjëherë
+            response.addCookie(oldCookie);
             AuthResponse authResponse = userService.loginUser(authRequest);
             Cookie tokenCookie = new Cookie("jwtToken", authResponse.getToken());
-            tokenCookie.setHttpOnly(true); // Për siguri, cookie nuk lejohet të aksesohet nga JavaScript
-            tokenCookie.setPath("/"); // Vlen për të gjithë aplikacionin
-           // tokenCookie.setMaxAge(24 * 60 * 60); // Kohëzgjatja e cookie-t (p.sh., 24 orë)
+            tokenCookie.setHttpOnly(true);
+            tokenCookie.setPath("/");
+            //tokenCookie.setMaxAge(0);
             response.addCookie(tokenCookie);
             model.addAttribute("token", authResponse.getToken());
             model.addAttribute("email", authResponse.getEmail());
@@ -47,7 +52,7 @@ public class LoginThymeleafController {
         Cookie cookie = new Cookie("jwtToken", null);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
-        cookie.setMaxAge(0); // Fshin cookie-n menjëherë
+        cookie.setMaxAge(0);
         response.addCookie(cookie);
         return "redirect:/login?logout=true";
     }

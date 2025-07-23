@@ -5,6 +5,7 @@ import com.electronicstore.tokenlogin.JwtUtil;
 
 import jakarta.servlet.http.Cookie;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -20,10 +21,12 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import io.jsonwebtoken.security.SignatureException;
 import java.util.Collections;
 import java.util.List;
 
 @Component
+@Order(2)
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
@@ -34,39 +37,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
     }
-//
-//    @Override
-//    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-//            throws ServletException, IOException {
-//        String authHeader = request.getHeader("Authorization");
-//        String token = null;
-//        String username = null;
-//
-//        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-//            token = authHeader.substring(7);
-//            username = jwtUtil.extractUsername(token);
-//        }
-//
-//        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-//            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-//            if (jwtUtil.validateToken(token, username)) {
-//                String role = jwtUtil.extractClaim(token, claims -> claims.get("role", String.class));
-//                List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role));
-//                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-//                        userDetails, null, authorities);
-//                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-//                SecurityContextHolder.getContext().setAuthentication(authToken);
-//            }
-//        }
-//        filterChain.doFilter(request, response);
-//    }
+
 @Override
 protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
         throws ServletException, IOException {
     String token = null;
     String username = null;
 
-    // Lexo tokenin nga cookie
     Cookie[] cookies = request.getCookies();
     if (cookies != null) {
         for (Cookie cookie : cookies) {
@@ -77,7 +54,6 @@ protected void doFilterInternal(HttpServletRequest request, HttpServletResponse 
         }
     }
 
-    // Opsional: Kontrollo edhe headerin për kompatibilitet
     if (token == null) {
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -86,7 +62,7 @@ protected void doFilterInternal(HttpServletRequest request, HttpServletResponse 
     }
 
     if (token != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-        username = jwtUtil.extractUsername(token);
+        try {  username = jwtUtil.extractUsername(token);
         if (username != null && jwtUtil.validateToken(token, username)) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
             String role = jwtUtil.extractClaim(token, claims -> claims.get("role", String.class));
@@ -96,7 +72,13 @@ protected void doFilterInternal(HttpServletRequest request, HttpServletResponse 
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authToken);
         }
-    }
+    }catch (SignatureException e) {
+            // Fshi cookie-n e pavlefshëm
+            Cookie cookie = new Cookie("jwtToken", null);
+            cookie.setPath("/");
+            cookie.setHttpOnly(true);
+            cookie.setMaxAge(0);
+            response.addCookie(cookie);}}
     filterChain.doFilter(request, response);
 }
 }
