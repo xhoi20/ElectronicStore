@@ -2,28 +2,34 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title>Items List</title>
+  <title>Lista e Artikujve</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
 <div class="container mt-5">
-  <h1>Items List</h1>
-
+  <h1>Lista e Artikujve</h1>
+  <div class="mb-2">
+    <a th:href="@{/main-list}" class="btn btn-warning btn-sm me-2">FAQJA KRYESORE</a>
+  </div>
+  <div th:if="${role == 'MANAGER'}">
+    <a th:href="@{/items/add}" class="btn btn-primary mb-3 mt-2">Shto Artikull</a>
+  </div>
+  <div th:if="${email}">
+    <p>Mirë se vini, <span th:text="${email}"></span>! (Roli: <span th:text="${role}"></span>)</p>
+    <a th:href="@{/login}">Dil</a>
+  </div>
   <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
   <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
-
-  <a th:href="@{/items/add}" class="btn btn-primary mb-3">Add New Item</a>
-
-  <table class="table table-bordered">
+  <table class="table table-striped">
     <thead>
     <tr>
       <th>ID</th>
-      <th>Name</th>
-      <th>Price</th>
-      <th>Quantity</th>
-      <th>Category</th>
-      <th>Suppliers</th>
-      <th>Actions</th>
+      <th>Emri</th>
+      <th>Çmimi</th>
+      <th>Sasia</th>
+      <th>Kategoria</th>
+      <th>Furnitorët</th>
+      <th th:if="${role == 'MANAGER'}">Veprime</th>
     </tr>
     </thead>
     <tbody>
@@ -34,21 +40,32 @@
       <td th:text="${item.sasia}"></td>
       <td th:text="${item.category != null ? item.category.emmrikategorise : 'N/A'}"></td>
       <td>
-        <span th:each="supplier, iterStat : ${item.suppliers}" th:text="${supplier.name} + (${iterStat.last ? '' : ', '})"></span>
-        <span th:if="${item.suppliers == null or item.suppliers.empty}">N/A</span>
-      </td>
+
       <td>
-        <a th:href="@{/items/edit/{id}(id=${item.id})}" class="btn btn-sm btn-warning">Edit</a>
-        <form th:action="@{/items/delete/{id}(id=${item.id})}" method="post" style="display:inline;">
-          <input type="hidden" name="userId" value="1" />
-          <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</button>
-        </form>
-        <a th:href="@{/items/restock/{id}(id=${item.id})}" class="btn btn-sm btn-info">Restock</a>
-        <a th:href="@{/items/check-stock/{id}(id=${item.id},threshold=10)}" class="btn btn-sm btn-secondary">Check Stock</a>
+        <span th:each="supplierName, iterStat : ${item.supplierNames}" th:text="${supplierName} + (${iterStat.last ? '' : ', '})"></span>
+        <span th:if="${item.supplierNames == null or #lists.isEmpty(item.supplierNames)}">N/A</span>
+      </td>
+      </td>
+      <td th:if="${role == 'MANAGER'}">
+        <a th:href="@{/items/edit/{id}(id=${item.id})}" class="btn btn-warning btn-sm">Ndrysho</a>
+        <a th:href="@{/items/delete/{id}(id=${item.id})}" class="btn btn-danger btn-sm" onclick="return confirm('Je i sigurt që do ta fshish?')">Fshij</a>
+        <a th:href="@{/items/restock/{id}(id=${item.id})}" class="btn btn-info btn-sm">Rifurnizo</a>
+        <a th:href="@{/items/check-stock/{id}(id=${item.id},threshold=10)}" class="btn btn-secondary btn-sm">Kontrollo Stokun</a>
       </td>
     </tr>
     </tbody>
   </table>
 </div>
+<script th:inline="javascript">
+  document.addEventListener('DOMContentLoaded', function() {
+    fetch('/items/items-list', {
+      method: 'GET',
+      credentials: 'include'
+    })
+            .then(response => response.text())
+            .then(data => console.log(data))
+            .catch(error => console.error('Error:', error));
+  });
+</script>
 </body>
 </html>

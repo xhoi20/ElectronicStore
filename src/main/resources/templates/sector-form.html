@@ -13,10 +13,10 @@
     <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
 
 
-    <form th:action="@{/sectors}" method="post">
+    <form th:action="@{/sectors/save}" method="post">
         <div class="mb-3">
             <label for="sectorName" class="form-label">Sector Name</label>
-            <input type="text" class="form-control" id="sectorName" name="sectorName" th:value="${sector.sectorName}" required>
+            <input type="text" class="form-control" id="sectorName" name="sectorName" th:value="${sector.SectorName}" required>
         </div>
         <div class="mb-3">
             <label for="userId" class="form-label">User ID</label>

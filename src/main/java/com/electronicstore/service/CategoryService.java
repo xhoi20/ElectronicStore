@@ -29,9 +29,10 @@ public class CategoryService  extends BaseService implements ICategoryService {
             if (emmrikategorise == null || emmrikategorise.trim().isEmpty()) {
                 return createErrorResponse("Category name cannot be null or empty", HttpStatus.BAD_REQUEST);
             }
-
+            String pershkrimi= categoryData.get("pershkrimi");
             Category category = new Category();
             category.setEmmrikategorise(emmrikategorise);
+            category.setPershkrimi(pershkrimi);
             Category createdCategory = categoryRepository.save(category);
             return createSuccessResponse(createdCategory, "Category added successfully", HttpStatus.CREATED);
         } catch (Exception e) {
@@ -56,10 +57,11 @@ public class CategoryService  extends BaseService implements ICategoryService {
             if (emmrikategorise == null || emmrikategorise.trim().isEmpty()) {
                 return createErrorResponse("Category name cannot be null or empty", HttpStatus.BAD_REQUEST);
             }
-
+            String pershkrimi= categoryData.get("pershkrimi");
             Category category = new Category();
             category.setId(id);
             category.setEmmrikategorise(emmrikategorise);
+            category.setPershkrimi(pershkrimi);
             Category updatedCategory = categoryRepository.save(category);
             return createSuccessResponse(updatedCategory, "Category updated successfully", HttpStatus.OK);
         } catch (Exception e) {

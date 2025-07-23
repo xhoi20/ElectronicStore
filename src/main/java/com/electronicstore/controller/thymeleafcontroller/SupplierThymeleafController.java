@@ -2,6 +2,7 @@ package com.electronicstore.controller.thymeleafcontroller;
 
 import com.electronicstore.entity.Supplier;
 import jakarta.validation.Valid;
+import org.springframework.security.core.Authentication;
 import org.springframework.ui.Model;
 import com.electronicstore.service.serviceInterface.ISupplierService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,10 +19,20 @@ public class SupplierThymeleafController {
     @Autowired
     private ISupplierService supplierService;
     @GetMapping
-    public String getAllSuppliers(Model model) {
+    public String getAllSuppliers(Model  model , Authentication authentication) {
+        if (authentication != null && authentication.isAuthenticated()) {
+            String email = authentication.getName();
+            String role = authentication.getAuthorities().stream()
+                    .map(grantedAuthority -> grantedAuthority.getAuthority())
+                    .findFirst()
+                    .map(auth -> auth.replace("ROLE_", ""))
+                    .orElse("");
 
-        Iterable<Supplier> suppliers =supplierService.getAllSuppliers();
+            model.addAttribute("email", email);
+            model.addAttribute("role", role);
+            Iterable<Supplier> suppliers =supplierService.getAllSuppliers();
         model.addAttribute("suppliers", suppliers);
+        }
         return "supplier-list";
     }
   @GetMapping("/add")

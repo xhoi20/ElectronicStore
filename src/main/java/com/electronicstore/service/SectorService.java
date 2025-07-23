@@ -40,7 +40,7 @@ public class SectorService extends BaseService implements ISectorService {
 getAuthenticatedUser();
 
         try {
-            String sectorName = sectorData.get("SectorName");
+            String sectorName = sectorData.get("sectorName");
             if (sectorName == null || sectorName.trim().isEmpty()) {
                 return createErrorResponse("Sector name is missing or empty", HttpStatus.BAD_REQUEST);
             }
@@ -87,7 +87,7 @@ public ResponseEntity<Map<String, Object>> updateSector( Long sectorId, Map<Stri
 getAuthenticatedUser();
 
     try {
-        String newSectorName = sectorData.get("SectorName");
+        String newSectorName = sectorData.get("sectorName");
         if (newSectorName == null || newSectorName.trim().isEmpty()) {
             return createErrorResponse("Sector name cannot be empty", HttpStatus.BAD_REQUEST);
         }

@@ -3,6 +3,7 @@ package com.electronicstore.controller.thymeleafcontroller;
 import com.electronicstore.entity.Sector;
 
 import com.electronicstore.service.serviceInterface.ISectorService;
+import org.springframework.security.core.Authentication;
 import org.springframework.ui.Model;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,9 +23,20 @@ public class SectorThymeleafController {
     private ISectorService sectorService;
 
     @GetMapping
-    public String addAllSectors(Model model) {
+    public String addAllSectors(Model model, Authentication authentication) {
+        if (authentication != null && authentication.isAuthenticated()) {
+            String email = authentication.getName();
+            String role = authentication.getAuthorities().stream()
+                    .map(grantedAuthority -> grantedAuthority.getAuthority())
+                    .findFirst()
+                    .map(auth -> auth.replace("ROLE_", ""))
+                    .orElse("");
+
+            model.addAttribute("email", email);
+            model.addAttribute("role", role);
         Iterable<Sector>sectors=sectorService.getAllSectors();
         model.addAttribute("sectors", sectors);
+        }
         return "sector-list";
     }
     @GetMapping("/add")
@@ -32,7 +44,7 @@ public class SectorThymeleafController {
         model.addAttribute("sector", new Sector());
         return "sector-form";
     }
-    @PostMapping
+    @PostMapping("/save")
     public String createSector(@RequestParam Map<String, String> sectorData, RedirectAttributes redirectAttributes) {
         try {
 
@@ -61,7 +73,7 @@ public class SectorThymeleafController {
         }
         return "redirect:/sectors";
     }
-    @PostMapping("/delete/{id}")
+    @GetMapping("/delete/{id}")
     public String deleteSector(@PathVariable Long id,  RedirectAttributes redirectAttributes) {
         try {
             sectorService.deleteSector(id);

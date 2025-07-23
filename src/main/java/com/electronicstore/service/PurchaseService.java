@@ -70,7 +70,7 @@ public ResponseEntity<Map<String, Object>> addPurchase( Map<String, Object> purc
 
     @Transactional
     public void deletePurchase(Long id) {
-        getAuthenticatedUser(); // Ensure only managers can delete purchases
+        getAuthenticatedUser();
         Optional<Purchase> purchaseOptional = purchaseRepository.findById(id);
         if (purchaseOptional.isEmpty()) {
             throw new IllegalArgumentException("Blerja me ID "+id + " nuk gjendet.");
@@ -126,8 +126,10 @@ public ResponseEntity<Map<String, Object>> updatePurchase(Long id, Map<String, O
 }
 @Transactional
     public Iterable<Purchase> getAllPurchases() {
-    return purchaseRepository.findAll();
+    return purchaseRepository.findAllWithRelations();
+    // return purchaseRepository.findAll();
 }
+
 @Transactional
     public Optional<Purchase> getPurchaseById(Long purchaseId) {
     return purchaseRepository.findById(purchaseId);

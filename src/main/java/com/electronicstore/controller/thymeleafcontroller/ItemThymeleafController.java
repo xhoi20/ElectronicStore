@@ -6,6 +6,7 @@ import com.electronicstore.service.serviceInterface.ISupplierService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -28,9 +29,20 @@ public class ItemThymeleafController {
     private ISupplierService supplierService;
 
     @GetMapping
-    public String getAllItems(Model model) {
-        Iterable<Item> items = itemService.getAllItems();
-        model.addAttribute("items", items);
+    public String getAllItems(Model model, Authentication authentication) {
+        if (authentication != null && authentication.isAuthenticated()) {
+            String email = authentication.getName();
+            String role = authentication.getAuthorities().stream()
+                    .map(grantedAuthority -> grantedAuthority.getAuthority())
+                    .findFirst()
+                    .map(auth -> auth.replace("ROLE_", ""))
+                    .orElse("");
+
+            model.addAttribute("email", email);
+            model.addAttribute("role", role);
+            Iterable<Item> items = itemService.getAllItems();
+            model.addAttribute("items", items);
+        }
         return "items-list";
     }
 

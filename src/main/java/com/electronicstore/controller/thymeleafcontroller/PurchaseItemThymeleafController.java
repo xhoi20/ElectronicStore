@@ -6,6 +6,7 @@ import com.electronicstore.repository.ItemRepository;
 import com.electronicstore.repository.PurchaseRepository;
 import com.electronicstore.service.serviceInterface.IPurchaseItemService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -25,22 +26,33 @@ public class PurchaseItemThymeleafController {
     private InvoiceRepository invoiceRepository;
 
     @GetMapping
-    public String getAllPurchaseItems(Model model) {
-        Iterable<PurchaseItem> purchaseItems = purchaseItemService.getAllPurchaseItems();
-        model.addAttribute("purchaseItems", purchaseItems);
+    public String getAllPurchaseItems(Model model, Authentication authentication) {
+        if (authentication != null && authentication.isAuthenticated()) {
+            String email = authentication.getName();
+            String role = authentication.getAuthorities().stream()
+                    .map(grantedAuthority -> grantedAuthority.getAuthority())
+                    .findFirst()
+                    .map(auth -> auth.replace("ROLE_", ""))
+                    .orElse("");
+
+            model.addAttribute("email", email);
+            model.addAttribute("role", role);
+            Iterable<PurchaseItem> purchaseItems = purchaseItemService.getAllPurchaseItems();
+            model.addAttribute("purchaseItems", purchaseItems);
+        }
         return "purchase-items-list";
     }
 
 
     @GetMapping("/add")
-    public String showForm(@RequestParam(required = false) Long id, @RequestParam Long userId, Model model) {
+    public String showForm(@RequestParam(required = false) Long id,  Model model) {
         PurchaseItem purchaseItem = id != null ? purchaseItemService.getPurchaseItem(id)
                 .orElse(new PurchaseItem()) : new PurchaseItem();
         model.addAttribute("purchaseItem", purchaseItem);
         model.addAttribute("purchases", purchaseRepository.findAll());
         model.addAttribute("items", itemRepository.findAll());
         model.addAttribute("invoices", invoiceRepository.findAll());
-        model.addAttribute("userId", userId);
+
         return "purchase-items-form";
     }
 
@@ -76,7 +88,7 @@ public class PurchaseItemThymeleafController {
     }
 
     @GetMapping("/edit/{id}")
-    public String showForm(@PathVariable Long id, Model model) {
+    public String showUpdatedForm(@PathVariable Long id, Model model) {
         PurchaseItem purchaseItem = id != null ? purchaseItemService.getPurchaseItem(id)
                 .orElse(new PurchaseItem()) : new PurchaseItem();
         model.addAttribute("purchaseItem", purchaseItem);
@@ -111,7 +123,7 @@ public class PurchaseItemThymeleafController {
             return "error";
         }
     }
-    @PostMapping("/delete/{id}")
+    @GetMapping("/delete/{id}")
     public String deletePurchaseItem(@PathVariable Long id,  RedirectAttributes redirectAttributes) {
         try {
             purchaseItemService.deletePurchaseItem(id);

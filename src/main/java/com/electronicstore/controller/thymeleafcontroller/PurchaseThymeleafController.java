@@ -5,6 +5,7 @@ import com.electronicstore.entity.Purchase;
 import com.electronicstore.service.BaseService;
 import com.electronicstore.service.serviceInterface.IPurchaseService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -19,9 +20,20 @@ public class PurchaseThymeleafController extends BaseService {
     @Autowired
     private IPurchaseService purchaseService;
     @GetMapping
-    public String getAllPurchases(Model model) {
-        Iterable<Purchase>purchases=purchaseService.getAllPurchases();
-        model.addAttribute("purchases", purchases);
+    public String getAllPurchases(Model model, Authentication authentication) {
+        if (authentication != null && authentication.isAuthenticated()) {
+            String email = authentication.getName();
+            String role = authentication.getAuthorities().stream()
+                    .map(grantedAuthority -> grantedAuthority.getAuthority())
+                    .findFirst()
+                    .map(auth -> auth.replace("ROLE_", ""))
+                    .orElse("");
+
+            model.addAttribute("email", email);
+            model.addAttribute("role", role);
+            Iterable<Purchase> purchases = purchaseService.getAllPurchases();
+            model.addAttribute("purchases", purchases);
+        }
         return "purchases-list";
     }
     @GetMapping("/add")

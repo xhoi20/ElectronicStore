@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "Item")
@@ -33,7 +34,7 @@ public class Item {
     @JsonBackReference(value = "category-item")
     private Category category;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "ItemFurnitori",
             joinColumns = @JoinColumn(name = "item_id"),
@@ -52,7 +53,11 @@ public class Item {
     @JoinColumn(name = "sector_id")
     @JsonBackReference(value = "sector-item")
     private Sector sector;
-
+    public List<String> getSupplierNames() {
+        return suppliers.stream()
+                .map(Supplier::getName)
+                .collect(Collectors.toList());
+    }
     @Override
     public String toString() {
         return "Item{" +

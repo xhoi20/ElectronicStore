@@ -22,7 +22,7 @@ public class PurchaseItem {
     @JsonBackReference(value = "purchase-purchaseItem")
     private Purchase purchase;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "item_id", nullable = false)
     @JsonBackReference(value = "item-purchaseItem")
     private Item item;

@@ -4,6 +4,7 @@ import com.electronicstore.dto.AuthRequest;
 import com.electronicstore.dto.AuthResponse;
 import com.electronicstore.service.UserService;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -17,7 +18,12 @@ public class LoginThymeleafController {
 
     @Autowired
     private UserService userService;
+    @GetMapping("/main-list")
+    public String showMainList(HttpServletRequest request, Model model) {
 
+            return "main-list";
+
+    }
     @GetMapping("/login")
     public String showLoginForm(Model model) {
         model.addAttribute("authRequest", new AuthRequest());
@@ -30,7 +36,7 @@ public class LoginThymeleafController {
             Cookie oldCookie = new Cookie("jwtToken", null);
             oldCookie.setPath("/");
             oldCookie.setHttpOnly(true);
-            oldCookie.setMaxAge(0); // Fshin cookie-n menjëherë
+            oldCookie.setMaxAge(0);
             response.addCookie(oldCookie);
             AuthResponse authResponse = userService.loginUser(authRequest);
             Cookie tokenCookie = new Cookie("jwtToken", authResponse.getToken());
