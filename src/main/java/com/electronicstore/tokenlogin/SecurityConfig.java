@@ -53,7 +53,7 @@ public class SecurityConfig {
                                 "/purchase-items/edit/**", "/purchase-items/delete/**",
                                 "/items/edit/**", "/items/delete/**", "/items/restock/**",
                                 "/invoices/delete/**", "/categories/edit/**", "/categories/delete/**")
-                        .hasAnyAuthority("MANAGER")
+                        .hasAnyAuthority("ROLE_MANAGER")
 
                         .requestMatchers("/users/user-form", "/suppliers/add", "/sectors/add",
                                 "/purchases/add", "/purchase-items/add", "/items/add",

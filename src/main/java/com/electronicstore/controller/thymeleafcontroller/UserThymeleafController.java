@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -100,19 +101,7 @@ public String handleUserForm(@ModelAttribute("userRegistrationRequest") @Valid U
         return "edit-user";
     }
 
-//@PostMapping("/edit/{id}")
-//public String updateUser(@PathVariable Long id, @ModelAttribute("user") User user,RequestBody UserUpdateRequest updateRequest) {
-//    try {
-//        userService.updateUser(id, updateRequest,sectorId,managedSectorIds,requestingUserRole);
-//        return "redirect:/users";
-//    } catch (IllegalArgumentException e) {
-//        System.out.println("Error: " + e.getMessage());
-//        return "error";
-//    } catch (Exception e) {
-//        System.out.println("Unexpected error: " + e.getMessage());
-//        return "error";
-//    }
-//}
+
 
     @PostMapping("/edit/{id}")
     public String updateUser(@PathVariable Long id,
@@ -131,9 +120,14 @@ public String handleUserForm(@ModelAttribute("userRegistrationRequest") @Valid U
 
         Set<Long> managedSectorIdsSet = managedSectorIds != null ? new HashSet<>(managedSectorIds) : new HashSet<>();
         try {
-            userService.updateUser(id, updateRequest, sectorId, managedSectorIdsSet, null); // null for requestingUserRole if not used
-            redirectAttributes.addFlashAttribute("successMessage", "User updated successfully!");
-            return "redirect:/users";
+            ResponseEntity<Map<String, Object>> response = userService.updateUser(id, updateRequest, sectorId, managedSectorIdsSet, null); // null for requestingUserRole if not used
+            if (response.getStatusCode() == HttpStatus.OK) {
+                redirectAttributes.addFlashAttribute("successMessage", "User updated successfully!");
+                return "redirect:/users/user-list";
+            } else {
+                redirectAttributes.addFlashAttribute("errorMessage", response.getBody().get("message"));
+                return "redirect:/users/edit/" + id;
+            }
         } catch (IllegalArgumentException e) {
             System.out.println("Error: " + e.getMessage());
             redirectAttributes.addFlashAttribute("errorMessage", "Failed to update user: " + e.getMessage());
@@ -144,10 +138,11 @@ public String handleUserForm(@ModelAttribute("userRegistrationRequest") @Valid U
             return "redirect:/users/edit/" + id;
         }
     }
+
     @GetMapping("/delete/{id}")
     public String deleteUser(@PathVariable Long id) {
         userService.deleteUserById(id);
-        return "redirect:/users";
+        return "redirect:/users/user-list";
     }
 
 

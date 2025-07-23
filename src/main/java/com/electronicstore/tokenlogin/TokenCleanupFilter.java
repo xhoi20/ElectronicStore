@@ -19,7 +19,7 @@ public class TokenCleanupFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-        // Fshi cookie-n e vjetër vetëm për endpoint-in /login
+
         if (httpRequest.getRequestURI().endsWith("/login")) {
             Cookie cookie = new Cookie("jwtToken", null);
             cookie.setPath("/");

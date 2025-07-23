@@ -1,8 +1,4 @@
 package com.electronicstore.tokenlogin;
-
-
-import com.electronicstore.tokenlogin.JwtUtil;
-
 import jakarta.servlet.http.Cookie;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
@@ -15,7 +11,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -73,7 +68,7 @@ protected void doFilterInternal(HttpServletRequest request, HttpServletResponse 
             SecurityContextHolder.getContext().setAuthentication(authToken);
         }
     }catch (SignatureException e) {
-            // Fshi cookie-n e pavlefshëm
+
             Cookie cookie = new Cookie("jwtToken", null);
             cookie.setPath("/");
             cookie.setHttpOnly(true);
