@@ -42,7 +42,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
 
                         .requestMatchers("/login", "/api/auth/**").permitAll()
-                        .requestMatchers("/invoices", "/invoices/add", "/invoices/view/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_CASHIER")
+                        .requestMatchers("/invoices",  "/invoices/view/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_CASHIER")
+
+                        .requestMatchers( "/invoices/add").hasAnyAuthority( "ROLE_CASHIER")
                         .requestMatchers("/users/user-list", "/suppliers", "/sectors", "/purchases",
                                 "/purchase-items", "/items", "/invoices", "/categories").authenticated()
 

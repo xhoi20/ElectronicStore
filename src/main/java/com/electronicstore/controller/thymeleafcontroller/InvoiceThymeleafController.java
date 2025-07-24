@@ -50,7 +50,7 @@ public class InvoiceThymeleafController {
                 List<User> cashiers = userService.getUsersByRole(UserRole.CASHIER);
                 model.addAttribute("cashiers", cashiers != null ? cashiers : new ArrayList<>());
             } else {
-                model.addAttribute("cashiers", new ArrayList<>()); // Provide empty list for non-managers
+                model.addAttribute("cashiers", new ArrayList<>());
             }
 
             String role = authentication.getAuthorities().stream()
@@ -99,7 +99,7 @@ public class InvoiceThymeleafController {
                 PurchaseItemRequest request = new PurchaseItemRequest();
                 request.setItemId(itemIds.get(i));
                 request.setPurchaseId(purchaseIds.get(i));
-                //request.setQuantity(quantities.get(i));
+
                 int quantity = (i < quantities.size()) ? quantities.get(i) : 1;
                 request.setQuantity(quantity);
                 purchaseItemRequests.add(request);
