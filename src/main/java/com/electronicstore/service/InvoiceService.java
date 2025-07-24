@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+
 @Service
 public class InvoiceService extends BaseService implements IInvoiceService {
 
@@ -45,6 +46,7 @@ public Invoice createInvoice(Long userId, List<PurchaseItemRequest> purchaseItem
                 .orElseThrow(() -> new IllegalArgumentException("Purchase nuk u gjet me ID: " + req.getPurchaseId())));
         item.setQuantity(req.getQuantity());
         purchaseItems.add(item);
+
     }
     Invoice invoice = new Invoice();
     invoice.setArketar(cashier);

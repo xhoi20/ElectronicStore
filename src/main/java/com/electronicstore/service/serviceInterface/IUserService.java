@@ -8,6 +8,7 @@ import com.electronicstore.entity.User;
 import com.electronicstore.entity.UserRole;
 import org.springframework.http.ResponseEntity;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Optional;
@@ -21,9 +22,9 @@ public interface IUserService {
     Optional<User> getUserById(Long id);
 
     Iterable<User> getAllUsers();
-
+    List<User> getUsersByRole(UserRole role);
     void deleteUserById(Long id);
-
+    User getUserByUsername(String email);
     public ResponseEntity<Map<String,Object>>updateUser(Long id, UserUpdateRequest updateRequest, Long sectorId, Set<Long>managedSectorIds, UserRole requestingUserRole);
 }
 

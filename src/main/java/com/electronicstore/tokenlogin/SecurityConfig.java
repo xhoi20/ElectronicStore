@@ -42,7 +42,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
 
                         .requestMatchers("/login", "/api/auth/**").permitAll()
-
+                        .requestMatchers("/invoices", "/invoices/add", "/invoices/view/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_CASHIER")
                         .requestMatchers("/users/user-list", "/suppliers", "/sectors", "/purchases",
                                 "/purchase-items", "/items", "/invoices", "/categories").authenticated()
 
@@ -51,7 +51,7 @@ public class SecurityConfig {
                                 "/sectors/edit/**", "/sectors/delete/**",
                                 "/purchases/edit/**", "/purchases/delete/**",
                                 "/purchase-items/edit/**", "/purchase-items/delete/**",
-                                "/items/edit/**", "/items/delete/**", "/items/restock/**",
+                                "/items/edit/**", "/items/delete/**", "/items/restock/**","/invoices/by-cashier", "/invoices/metrics",
                                 "/invoices/delete/**", "/categories/edit/**", "/categories/delete/**")
                         .hasAnyAuthority("ROLE_MANAGER")
 

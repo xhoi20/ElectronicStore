@@ -230,7 +230,12 @@ public void deleteUserById(Long id) {
             return handleException(e);
         }
     }
-
+    public User getUserByUsername(String email) {
+        return userRepository.findByEmail(email);
+    }
+    public List<User> getUsersByRole(UserRole role) {
+        return userRepository.findByRole(role);
+    }
    @Transactional
     public Iterable<Sector> getAllSectors() {
         return sectorRepository.findAll();
