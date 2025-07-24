@@ -102,7 +102,7 @@ public class InvoiceThymeleafController {
 
                 int quantity = (i < quantities.size()) ? quantities.get(i) : 1;
                 request.setQuantity(quantity);
-                purchaseItemRequests.add(request);
+
                 purchaseItemRequests.add(request);
 
             }
