@@ -46,7 +46,7 @@ public class SecurityConfig {
 
                         .requestMatchers( "/invoices/add").hasAnyAuthority( "ROLE_CASHIER")
                         .requestMatchers("/users/user-list", "/suppliers", "/sectors", "/purchases",
-                                "/purchase-items", "/items", "/invoices", "/categories").authenticated()
+                                "/purchase-items", "/items", "/invoices", "/categories","/api/invoices/status/**").authenticated()
 
                         .requestMatchers("/users/edit/**", "/users/delete/**",
                                 "/suppliers/edit/**", "/suppliers/delete/**",

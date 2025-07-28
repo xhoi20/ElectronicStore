@@ -34,7 +34,9 @@ public class Invoice {
     @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference(value = "invoice-purchaseItem")
     private List<PurchaseItem> artikujt = new ArrayList<>();
-
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private InvoiceStatus status = InvoiceStatus.PAPAGUAR;;
     @Override
     public String toString() {
         return "Invoice{" +

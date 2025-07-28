@@ -3,6 +3,7 @@ package com.electronicstore.controller;
 
 import com.electronicstore.dto.PurchaseItemRequest;
 import com.electronicstore.entity.Invoice;
+import com.electronicstore.entity.InvoiceStatus;
 import com.electronicstore.entity.PurchaseItem;
 
 import com.electronicstore.repository.ItemRepository;
@@ -52,6 +53,21 @@ static class ErrorResponse {
             return message;
         }
     }
+    @PutMapping("/status/{id}/{status}")
+    public ResponseEntity<?> changeStatusInvoice(
+            @PathVariable Long id,
+            @PathVariable InvoiceStatus status) {
+        try {
+            Invoice invoice = invoiceService.changeStatus(id, status);
+            return ResponseEntity.ok(invoice);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ErrorResponse("An unexpected error occurred: " + e.getMessage()));
+        }
+    }
+
+
     @GetMapping("/cashier/{userId}")
     public ResponseEntity<Map<String, Object>> getInvoicesByCashier(@PathVariable Long userId) {
         try {

@@ -1,4 +1,3 @@
-
 package com.electronicstore.service;
 
 import com.electronicstore.dto.PurchaseItemRequest;
@@ -11,10 +10,8 @@ import com.electronicstore.service.serviceInterface.IInvoiceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.*;
 import java.util.stream.Collectors;
-
 
 @Service
 public class InvoiceService extends BaseService implements IInvoiceService {
@@ -73,11 +70,21 @@ public Invoice createInvoice(Long userId, List<PurchaseItemRequest> purchaseItem
         total += dbItem.getCmimi().doubleValue() * item.getQuantity();
         item.setInvoice(invoice);
     }
-
+    invoice.setStatus(InvoiceStatus.PAPAGUAR);
     invoice.setTotali(total);
     return invoiceRepository.save(invoice);
 }
 
+public Invoice changeStatus(Long id, InvoiceStatus status) {
+    Invoice invoice = invoiceRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Invoice not found!"));
+    if(invoice.getStatus() == InvoiceStatus.PAPAGUAR) {
+
+        invoice.setStatus(InvoiceStatus.PAGUAR);
+
+    }
+    return invoiceRepository.save(invoice) ;
+}
     @Transactional
     public List<Invoice> getInvoicesByCashier(Long userId) {
       getAuthenticatedUser();

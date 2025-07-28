@@ -2,6 +2,7 @@ package com.electronicstore.service.serviceInterface;
 
 import com.electronicstore.dto.PurchaseItemRequest;
 import com.electronicstore.entity.Invoice;
+import com.electronicstore.entity.InvoiceStatus;
 import com.electronicstore.entity.PurchaseItem;
 import com.electronicstore.service.InvoiceService;
 
@@ -15,7 +16,7 @@ public interface IInvoiceService {
 
     public Invoice createInvoice(Long userId, List<PurchaseItemRequest> purchaseItemRequests) throws Exception;
 
-
+    Invoice changeStatus(Long id, InvoiceStatus status);
     List<Invoice> getInvoicesByCashier(Long userId);
 
 
