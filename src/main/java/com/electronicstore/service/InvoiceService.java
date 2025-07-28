@@ -129,15 +129,18 @@ public List<Invoice> getInvoicesBySector(Long userId) throws Exception {
 
         Invoice invoice = invoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new Exception("Fatura nuk u gjet me ID: " + invoiceId));
+if(invoice.getStatus() == InvoiceStatus.PAPAGUAR) {
+    for (PurchaseItem item : invoice.getArtikujt()) {
+        Item stockItem = itemRepository.findById(item.getItem().getId())
+                .orElseThrow(() -> new Exception("Artikulli nuk u gjet me ID: " + item.getItem().getId()));
+        stockItem.setSasia(stockItem.getSasia() + item.getQuantity());
+        itemRepository.save(stockItem);
+    }
 
-        for (PurchaseItem item : invoice.getArtikujt()) {
-            Item stockItem = itemRepository.findById(item.getItem().getId())
-                    .orElseThrow(() -> new Exception("Artikulli nuk u gjet me ID: " + item.getItem().getId()));
-            stockItem.setSasia(stockItem.getSasia() + item.getQuantity());
-            itemRepository.save(stockItem);
-        }
-
-        invoiceRepository.delete(invoice);
+    invoiceRepository.delete(invoice);
+}else {
+    throw new Exception("Fatura nuk mund te fshihet sepse statusi eshte i paguar : " );
+}
     }
 
     public static class SalesMetrics {

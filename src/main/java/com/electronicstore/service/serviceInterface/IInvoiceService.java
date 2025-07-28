@@ -3,7 +3,7 @@ package com.electronicstore.service.serviceInterface;
 import com.electronicstore.dto.PurchaseItemRequest;
 import com.electronicstore.entity.Invoice;
 import com.electronicstore.entity.InvoiceStatus;
-import com.electronicstore.entity.PurchaseItem;
+
 import com.electronicstore.service.InvoiceService;
 
 
