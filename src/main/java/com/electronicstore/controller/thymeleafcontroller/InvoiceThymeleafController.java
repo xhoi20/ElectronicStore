@@ -18,10 +18,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-
 @Controller
 @RequestMapping("/invoices")
 public class InvoiceThymeleafController {
@@ -161,7 +159,17 @@ public class InvoiceThymeleafController {
             return "redirect:/invoices";
         }
     }
-
+    @PutMapping("/status/{invoiceId}")
+    public String changeStatusInvoice(@PathVariable Long id,@RequestParam InvoiceStatus status,
+                                RedirectAttributes redirectAttributes) {
+        try {
+            invoiceService.changeStatus(id, status);
+            redirectAttributes.addFlashAttribute("message", "Invoice deleted successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/invoices";
+    }
 
     @PostMapping("/delete/{invoiceId}")
     public String deleteInvoice(@PathVariable Long invoiceId,
