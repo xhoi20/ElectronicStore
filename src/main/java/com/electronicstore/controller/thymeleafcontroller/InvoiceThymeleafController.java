@@ -159,7 +159,7 @@ public class InvoiceThymeleafController {
             return "redirect:/invoices";
         }
     }
-    @PutMapping("/status/{invoiceId}")
+    @PutMapping("/status/{id}")
     public String changeStatusInvoice(@PathVariable Long id,@RequestParam InvoiceStatus status,
                                 RedirectAttributes redirectAttributes) {
         try {
