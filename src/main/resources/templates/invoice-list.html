@@ -56,15 +56,61 @@
             <td th:text="${invoice.id}"></td>
             <td th:text="${invoice.arketar != null ? invoice.arketar.name : 'N/A'}"></td>
             <td th:text="${invoice.totali}"></td>
+
+
             <td>
-                <span th:text="'Status: ' + ${invoice.status}" th:id="'status-' + ${invoice.id}" th:style="'font-weight: bold;'"></span>
+                <form>
+    <span th:text="'Status: ' + ${invoice.status}"
+          th:id="'status-' + ${invoice.id}"
+          style="font-weight: bold;"></span>
+
+                <!-- Only show if status is PAPAGUAR -->
+                <button th:if="${invoice.status == T(com.electronicstore.entity.InvoiceStatus).PAPAGUAR}"
+                        th:id="'pay-button-' + ${invoice.id}"
+                        th:attr="data-id=${invoice.id}"
+                        class="btn btn-warning btn-sm"
+                        onclick="markAsPaid(this)">
+                    Paguar
+                </button>
+                </form>
                 <a th:href="@{'/invoices/view/' + ${invoice.id}}" class="btn btn-info btn-sm">View</a>
-                <form th:action="@{'/invoices/delete/' + ${invoice.id}}" method="post" style="display:inline;" sec:authorize="hasRole('MANAGER')"th:unless="${role == 'CASHIER'}">
+                <form th:action="@{'/invoices/delete/' + ${invoice.id}}" method="post" style="display:inline;" sec:authorize="hasRole('MANAGER')" th:unless="${role == 'CASHIER'}">
 
                     <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">Delete</button>
                 </form>
             </td>
         </tr>
+        <script>
+            function markAsPaid(button) {
+                const id = button.getAttribute('data-id');
+
+                fetch(`/invoices/status/${id}?status=PAGUAR`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                    .then(response => {
+                        if (!response.ok) throw new Error("Failed to update invoice");
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Update the status text
+                        const statusElement = document.getElementById('status-' + id);
+                        if (statusElement) {
+                            statusElement.textContent = 'Status: ' + data.status;
+                        }
+
+                        // Remove the button
+                        button.remove();
+                    })
+                    .catch(error => {
+                        console.error("Error:", error);
+                        alert("Failed to update invoice status.");
+                    });
+            }
+        </script>
+
         </tbody>
     </table>
 </div>

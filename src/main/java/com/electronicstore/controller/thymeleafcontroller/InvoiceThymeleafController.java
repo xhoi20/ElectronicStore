@@ -10,6 +10,7 @@ import com.electronicstore.repository.PurchaseRepository;
 import com.electronicstore.service.serviceInterface.IInvoiceService;
 import com.electronicstore.service.serviceInterface.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -159,17 +160,26 @@ public class InvoiceThymeleafController {
             return "redirect:/invoices";
         }
     }
-    @PutMapping("/status/{id}")
-    public String changeStatusInvoice(@PathVariable Long id,@RequestParam InvoiceStatus status,
-                                RedirectAttributes redirectAttributes) {
-        try {
-            invoiceService.changeStatus(id, status);
-            redirectAttributes.addFlashAttribute("message", "Invoice deleted successfully!");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-        }
-        return "redirect:/invoices";
+//    @PostMapping("/status/{id}")
+//    public String changeStatusInvoice(@PathVariable Long id,@RequestParam InvoiceStatus status,
+//                                RedirectAttributes redirectAttributes) {
+//        try {
+//            invoiceService.changeStatus(id, status);
+//            redirectAttributes.addFlashAttribute("message", "Invoice deleted successfully!");
+//        } catch (Exception e) {
+//            redirectAttributes.addFlashAttribute("error", e.getMessage());
+//        }
+//        return "redirect:/invoices";
+//    }
+@PostMapping("/status/{id}")
+public ResponseEntity<?> updateStatus(@PathVariable Long id, @RequestParam InvoiceStatus status) {
+    try {
+        Invoice updated = invoiceService.changeStatus(id, status);
+        return ResponseEntity.ok(updated);
+    } catch (Exception e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
     }
+}
 
     @PostMapping("/delete/{invoiceId}")
     public String deleteInvoice(@PathVariable Long invoiceId,

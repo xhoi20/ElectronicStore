@@ -78,11 +78,12 @@ public Invoice createInvoice(Long userId, List<PurchaseItemRequest> purchaseItem
 public Invoice changeStatus(Long id, InvoiceStatus status) {
     Invoice invoice = invoiceRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Invoice not found!"));
-    if(invoice.getStatus() == InvoiceStatus.PAPAGUAR) {
-
-        invoice.setStatus(InvoiceStatus.PAGUAR);
-
-    }
+//    if(invoice.getStatus() == InvoiceStatus.PAPAGUAR) {
+//
+//        invoice.setStatus(InvoiceStatus.PAGUAR);
+//
+//    }
+    invoice.setStatus(status);
     return invoiceRepository.save(invoice) ;
 }
     @Transactional
