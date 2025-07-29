@@ -175,8 +175,8 @@ if(invoice.getStatus() == InvoiceStatus.PAPAGUAR) {
         optionalInvoice.ifPresent(invoice -> {
             System.out.println("Artikujt ne kete invoice:");
             for (PurchaseItem p : invoice.getArtikujt()) {
-                System.out.println("Item: " + (p.getItem() != null ? p.getItem().getEmri() : "null")
-                        + ", Sasia: " + p.getSasia());
+                System.out.println("Item: " + (p.getItem() != null ? p.getItem().getEmri() : "null"));
+                       // + ", Sasia: " + p.getSasia()
             }
         });
         return optionalInvoice;

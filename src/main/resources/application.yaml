@@ -4,7 +4,9 @@ spring:
     name: store
 
   flyway:
-    enabled: false
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
 
   datasource:
     url: jdbc:sqlserver://localhost:1433;databaseName=Electronic;encrypt=true;trustServerCertificate=true
@@ -15,7 +17,7 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
 
     open-in-view: false
       #  properties:
