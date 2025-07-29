@@ -161,7 +161,13 @@ if(invoice.getStatus() == InvoiceStatus.PAPAGUAR) {
     }
     @Transactional
     public Iterable<Invoice>getAllInvoices() {
-    return invoiceRepository.findAll();
+        Iterable<Invoice> invoices = invoiceRepository.findAll();
+        for (Invoice invoice : invoices) {
+            if (invoice.getStatus() == null) {
+                invoice.setStatus(InvoiceStatus.PAPAGUAR);
+            }
+        }
+    return invoices ;
     }
     @Transactional
     public Optional<Invoice>getInvoiceById( Long invoiceId) {

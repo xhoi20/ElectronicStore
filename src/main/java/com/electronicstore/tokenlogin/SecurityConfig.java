@@ -64,10 +64,7 @@ public class SecurityConfig {
 
                         .anyRequest().authenticated()
                 )
-//                       .requestMatchers("/api/auth/**","/users/**","/login/**","/sectors/**").permitAll()
-//                        .requestMatchers("/api/sectors/**").authenticated()
 
-                        //.anyRequest().permitAll())//authenticated())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(new JwtAuthenticationFilter(jwtUtil, userDetailsService), UsernamePasswordAuthenticationFilter.class);

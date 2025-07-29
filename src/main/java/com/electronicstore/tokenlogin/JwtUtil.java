@@ -8,7 +8,6 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
@@ -25,7 +24,7 @@ public class JwtUtil {
 
 
     public JwtUtil() {
-        this.secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS512); // Gjeneron një çelës 512-bit
+        this.secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS512);
     }
 
     public String generateToken(String username, String role) {
