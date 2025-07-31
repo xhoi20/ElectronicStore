@@ -1,36 +1,3 @@
-<!--<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8">
-  <title>Create Invoice</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-</head>
-<body>
-<div class="container mt-5">
-  <h1>Create Invoice</h1>
-
-
-  <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
-  <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
-
-  <form th:action="@{/invoices/save}" th:object="${invoice}" method="post">
-
-    <div class="mb-3">
-      <label for="userId" class="form-label">Cashier ID</label>
-      <input type="number" class="form-control" id="userId" name="userId" required />
-    </div>
-
-    <div class="mb-3">
-      <label for="totali" class="form-label">Total</label>
-      <input type="number" step="0.01" class="form-control" id="totali" th:field="*{totali}" required />
-    </div>
-
-    <button type="submit" class="btn btn-success">Save</button>
-    <a th:href="@{/invoices}" class="btn btn-secondary">Cancel</a>
-  </form>
-</div>
-</body>
-</html>-->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>

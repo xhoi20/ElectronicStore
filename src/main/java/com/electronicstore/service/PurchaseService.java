@@ -4,7 +4,6 @@ import com.electronicstore.entity.Supplier;
 import com.electronicstore.entity.User;
 import com.electronicstore.repository.PurchaseRepository;
 import com.electronicstore.repository.SupplierRepository;
-import com.electronicstore.repository.UserRepository;
 import com.electronicstore.service.serviceInterface.IPurchaseService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;

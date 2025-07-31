@@ -28,8 +28,7 @@ public class PurchaseItem {
     private Item item;
     @Column(name = "quantity")
     private int quantity;
-//    @Column(name = "sasia", nullable = false)
-//    private int sasia;
+
     @ManyToOne(fetch = FetchType.LAZY)
 
     @JoinColumn(name = "invoice_id")

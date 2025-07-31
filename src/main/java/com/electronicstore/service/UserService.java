@@ -14,16 +14,12 @@ import com.electronicstore.repository.UserRepository;
 import com.electronicstore.service.serviceInterface.IUserService;
 import com.electronicstore.tokenlogin.JwtUtil;
 import jakarta.transaction.Transactional;
-
 import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -44,8 +40,6 @@ public class UserService extends BaseService implements IUserService {
     private static final String ENCRYPTION_ALGORITHM = "PBEWithMD5AndDES";
  @Autowired
     private   JwtUtil jwtUtil;
-
-
 
     @Transactional
     public ResponseEntity<Map<String, Object>> registerUser(
